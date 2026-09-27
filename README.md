@@ -19,7 +19,7 @@ The theme follows the device’s color preference.
 
 ## Before publishing
 
-Replace `SUPPORT_EMAIL` in both support and both deletion pages.
+The support email appears on both support and both deletion pages.
 The placeholder is visible and deliberately has no mailto link.
 Use the same real address across both languages.
 Review the content against the version you plan to release.
