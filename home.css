@@ -238,3 +238,11 @@ img.pc{width:150px;height:210px;margin-left:-75px;padding:0;background:none;bord
 @media (max-width:860px){.maker .wrap{grid-template-columns:1fr}}
 .maker .polaroid{width:min(100%,400px);transform:rotate(3deg)}
 .maker .polaroid img{aspect-ratio:1}
+/* Estimation fan fix: symmetric pyramid stacking, card-shaped shadow, stable hover */
+.fan .pc{transform-origin:50% 120%}
+.fan .pc:nth-child(1){--x:-112px;--r:-18deg;z-index:1}.fan .pc:nth-child(2){--x:-58px;--r:-9deg;z-index:2}.fan .pc:nth-child(3){--x:0px;--r:0deg;z-index:3}.fan .pc:nth-child(4){--x:58px;--r:9deg;z-index:2}.fan .pc:nth-child(5){--x:112px;--r:18deg;z-index:1}
+.fan.in .pc{transform:translateX(var(--x)) rotate(var(--r))}
+.fan .pc:hover{transform:translateX(var(--x)) rotate(var(--r)) translateY(-22px)!important;z-index:6}
+img.pc{border-radius:0;box-shadow:none;object-fit:contain;filter:drop-shadow(4px 6px 0 rgba(0,0,0,.45))}
+.fan .call{z-index:7}
+@media (max-width:420px){.fan .pc:nth-child(1){--x:-72px;--r:-15deg}.fan .pc:nth-child(2){--x:-38px;--r:-7deg}.fan .pc:nth-child(4){--x:38px;--r:7deg}.fan .pc:nth-child(5){--x:72px;--r:15deg}}
