@@ -1,13 +1,16 @@
 # قعدة مصلحة | Qaadet Maslaha
 
 A small, bilingual legal site for GitHub Pages.
-No build step, dependencies, scripts, trackers, or external fonts.
+No build step, no dependencies, no trackers, no external requests or fonts.
 Arabic pages use RTL; English pages use LTR.
 The theme follows the device’s color preference.
 
 ## Files
 
-- `index.html` / `index-en.html`: game introduction and links.
+- `index.html` (Arabic, default) / `en.html` (English): the landing page. Both are generated from one template by `node scripts/gen-pages.mjs` (dev-only, no dependencies), so edit `scripts/gen-pages.mjs`, not the HTML. `ar.html` and `index-en.html` are redirect stubs.
+- `home.css` / `home.js`: landing styles and the small vanilla script (reveals, rolling digits, ink line). No libraries, no requests.
+- `img/`, `fonts/`, `favicon.ico`: game art (from the game repo), self-hosted fonts, tab icon.
+- `scripts/check-site5.mjs`: dev-only check (overflow, external requests, console errors, reduced motion, links, facts). Needs puppeteer-core (found in the game repo's node_modules) and Chrome.
 - `privacy.html` / `privacy-en.html`: privacy practices.
 - `terms.html` / `terms-en.html`: terms of use.
 - `support.html` / `support-en.html`: support contacts.

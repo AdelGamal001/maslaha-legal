@@ -131,7 +131,7 @@ const L = {
       seals: [['المخ', 'عادل'], ['العضلات', 'الـ AI']],
     },
     final: {
-      kicker: 'عايز تلعبها أول واحد؟', h2: 'عايز تلعبها أول واحد؟', sub: 'تابعنا على إنستجرام وهنبلّغك يوم النزول.', stamp: 'تابعنا',
+      kicker: 'يوم النزول', h2: 'عايز تلعبها أول واحد؟', sub: 'تابعنا على إنستجرام وهنبلّغك يوم النزول.', stamp: 'تابعنا',
     },
     footer: { by: '© 2026 قعدة مصلحة · من صنع', byName: 'عادل جمال', navLabel: 'معلومات اللعبة',
       links: [['privacy.html', 'الخصوصية'], ['terms.html', 'الشروط'], ['support.html', 'الدعم'], ['account-deletion.html', 'حذف البيانات']], ig: 'إنستجرام' },
@@ -248,7 +248,7 @@ const L = {
       seals: [['The brains', 'Adel'], ['The muscle', 'The AI']],
     },
     final: {
-      kicker: 'Want to play first?', h2: 'Want to be first in line?', sub: 'Follow us on Instagram and we’ll tell you launch day.', stamp: 'FOLLOW US',
+      kicker: 'Launch day', h2: 'Want to be first in line?', sub: 'Follow us on Instagram and we’ll tell you launch day.', stamp: 'FOLLOW US',
     },
     footer: { by: '© 2026 Qaadet Maslaha · Made by', byName: 'Adel Gamal', navLabel: 'Game information',
       links: [['privacy-en.html', 'Privacy'], ['terms-en.html', 'Terms'], ['support-en.html', 'Support'], ['account-deletion-en.html', 'Data deletion']], ig: 'Instagram' },
@@ -260,10 +260,10 @@ function page(c) {
   const imgSize = { 'step-room': [960, 540], 'step-chars': [960, 540], 'step-hazards': [960, 540], 'step-clerk': [960, 552], 'step-rest': [960, 679], 'step-result': [960, 717] }
   const widgets = [
     `<div class="wgt code" aria-hidden="true"><small>${w.code}</small><b>${w.roomCode.map((l) => `<span>${l}</span>`).join('')}</b><i class="joiners"><u></u><u></u><u></u><u></u></i></div>`,
-    `<div class="wgt stats" aria-hidden="true"><small>${w.char}</small>${[5, 2, 3, 3].map((n, i) => `<div class="sr" style="--n:${n};--k:${i}"><span>${w.st[i]}</span><i></i></div>`).join('')}</div>`,
+    `<div class="wgt cstat" aria-hidden="true"><small>${w.char}</small>${[5, 2, 3, 3].map((n, i) => `<div class="sr" style="--n:${n};--k:${i}"><span>${w.st[i]}</span><i></i></div>`).join('')}</div>`,
     `<div class="wgt file" aria-hidden="true"><i></i><i></i><i></i></div><div class="bars" aria-hidden="true"><div class="bar nrg"><span>${w.bars[0]}</span><i></i></div><div class="bar pat"><span>${w.bars[1]}</span><i></i></div></div>`,
     `<div class="wgt visit" aria-hidden="true"><small>${w.mood}</small><b class="moodtxt">${w.moods.map((m) => `<span>${m}</span>`).join('')}</b><i class="tries"><u></u><u></u><u></u><u></u></i></div><div class="wgt queue" aria-hidden="true"><small>${w.queue}</small><b class="qn" data-go="${w.go}">3</b></div><div class="deskpaper" aria-hidden="true"></div><i class="bigstamp2" data-t="${w.stampT}" aria-hidden="true"></i>`,
-    `<div class="wgt boss" aria-hidden="true"><small>${w.boss}</small><b class="cd">60<small>${w.sec}</small></b><em class="bids">${w.gates.map((g) => `<u>${g}</u>`).join('')}</em></div>`,
+    `<div class="wgt bchal" aria-hidden="true"><small>${w.boss}</small><b class="cd">60<small>${w.sec}</small></b><em class="bids">${w.gates.map((g) => `<u>${g}</u>`).join('')}</em></div>`,
     `<div class="wgt fax" aria-hidden="true"><small>${w.fax}</small><b>${w.rank}</b><i class="meds"><img src="img/medal-papers.webp" width="34" height="34" alt=""><img src="img/medal-attempts.webp" width="34" height="34" alt=""><img src="img/medal-climb.webp" width="34" height="34" alt=""></i></div>`,
   ]
   const steps = c.how.steps.map((s, i) => {

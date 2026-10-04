@@ -150,9 +150,9 @@ h2{font-size:clamp(36px,5vw,60px);line-height:1.05;margin:4px 0 14px;font-weight
 .stepx{--fill:0;display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center;position:relative}
 .stepx:nth-child(even) .stepx-pic{order:2}
 /* the ink line between steps: one segment per step, filled by home.js while it scrolls through */
-.inkline{position:absolute;top:0;bottom:calc(var(--gap)*-1);inset-inline-start:50%;width:6px;margin-inline-start:-3px;pointer-events:none}
+.inkline{position:absolute;top:0;bottom:calc(var(--gap)*-1 - 2px);inset-inline-start:50%;width:6px;margin-inline-start:-3px;pointer-events:none}
 .stepx:last-child .inkline{bottom:0}
-.inkline::before,.inkline::after{content:"";position:absolute;inset:0;border-radius:6px}
+.inkline::before,.inkline::after{content:"";position:absolute;inset:0}
 .inkline::before{background:repeating-linear-gradient(var(--ink) 0 12px,transparent 12px 22px);opacity:.22}
 .inkline::after{background:var(--stamp);transform-origin:top;transform:scaleY(var(--fill));transition:transform .35s linear;will-change:transform}
 .inkline u{position:absolute;inset-inline-start:0;width:1px;height:1px}
@@ -182,7 +182,7 @@ h2{font-size:clamp(36px,5vw,60px);line-height:1.05;margin:4px 0 14px;font-weight
 /* live widgets drawn over the step pictures (all aria-hidden, absolutely placed, transform/opacity only) */
 .wgt{position:absolute;z-index:2;scale:var(--s,1);background:var(--cream);border:3px solid var(--ink);border-radius:12px;box-shadow:4px 4px 0 var(--ink);font-weight:800;line-height:1.1}
 .wgt small{display:block;font-size:12px;letter-spacing:.04em;color:var(--ink-soft)}
-@media (max-width:520px){.wgt,.bars{--s:.86}.wgt{transform-origin:left bottom}.wgt.visit,.wgt.boss,.wgt.file{transform-origin:left top}}
+@media (max-width:520px){.stepx-pic img{aspect-ratio:4/3}.wgt,.bars{--s:.74}.wgt{transform-origin:left bottom}.wgt.visit,.wgt.bchal,.wgt.file{transform-origin:left top}}
 /* 1 · room code (always left-to-right) */
 .wgt.code{left:14px;bottom:14px;padding:8px 12px}
 .wgt.code b{display:flex;direction:ltr;gap:4px;font-family:"Courier New",monospace;font-size:28px;margin-top:2px}
@@ -196,7 +196,7 @@ h2{font-size:clamp(36px,5vw,60px);line-height:1.05;margin:4px 0 14px;font-weight
 .stepx.in .joiners u{animation:pop .4s var(--pop) forwards}
 .stepx.in .joiners u:nth-child(1){animation-delay:.9s}.stepx.in .joiners u:nth-child(2){animation-delay:1.3s}.stepx.in .joiners u:nth-child(3){animation-delay:1.7s}.stepx.in .joiners u:nth-child(4){animation-delay:2.1s}
 /* 2 · character stats */
-.wgt.stats{left:14px;bottom:14px;width:178px;padding:8px 12px 10px}
+.wgt.cstat{left:14px;bottom:14px;width:178px;padding:8px 12px 10px}
 .sr{display:grid;grid-template-columns:66px 1fr;align-items:center;gap:6px;margin-top:5px;font-size:13px}
 .sr i{position:relative;display:block;height:10px;border:2px solid var(--ink);border-radius:6px;overflow:hidden;background:var(--paper)}
 .sr i::after{content:"";position:absolute;inset:0;background:var(--c,var(--teal));transform:scaleX(0);transform-origin:left;transition:transform .8s var(--ease) calc(var(--k)*.14s + .5s)}
@@ -241,9 +241,9 @@ h2{font-size:clamp(36px,5vw,60px);line-height:1.05;margin:4px 0 14px;font-weight
 .stepx.in .bigstamp2{animation:slam2 4.2s var(--pop) 1s infinite}
 @keyframes slam2{0%{opacity:0;transform:scale(3) rotate(-18deg)}8%,78%{opacity:.95;transform:scale(1) rotate(-18deg)}92%,100%{opacity:0;transform:scale(1) rotate(-18deg)}}
 /* 5 · rest, then the boss challenge: 60-second countdown with gate bonuses */
-.wgt.boss{left:14px;top:14px;padding:8px 16px 6px;text-align:center;min-width:128px}
-.wgt.boss .cd{display:block;font-family:Lalezar,"Baloo Bhaijaan 2";font-weight:400;font-size:40px;color:var(--stamp);font-variant-numeric:tabular-nums}
-.wgt.boss .cd small{display:inline;font-size:16px;margin-inline-start:3px;color:var(--stamp)}
+.wgt.bchal{left:14px;top:14px;padding:8px 16px 6px;text-align:center;min-width:128px}
+.wgt.bchal .cd{display:block;font-family:Lalezar,"Baloo Bhaijaan 2";font-weight:400;font-size:40px;color:var(--stamp);font-variant-numeric:tabular-nums}
+.wgt.bchal .cd small{display:inline;font-size:16px;margin-inline-start:3px;color:var(--stamp)}
 .bids{position:absolute;left:100%;top:0;margin-left:6px;font-style:normal}
 .bids u{position:absolute;left:0;text-decoration:none;white-space:nowrap;background:var(--butter);border:2px solid var(--ink);border-radius:999px;padding:0 9px;font-size:15px;opacity:0}
 .stepx.in .bids u{animation:bid 2.4s ease-out infinite}
@@ -269,8 +269,8 @@ h2{font-size:clamp(36px,5vw,60px);line-height:1.05;margin:4px 0 14px;font-weight
 .est .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
 .est .chips span{border:2.5px solid var(--butter);color:var(--butter);border-radius:999px;padding:3px 14px;font-weight:700}
 /* the fan: five cards on one shared pivot, centre on top, hover lifts a single card */
-.fan{--cw:clamp(96px,27vw,148px);--ch:calc(var(--cw)*1.4);position:relative;justify-self:center;width:calc(var(--cw)*3.3);height:calc(var(--ch)*1.34);margin-top:calc(var(--ch)*.1)}
-.pc{position:absolute;left:50%;top:calc(var(--ch)*.18);width:var(--cw);height:var(--ch);margin-left:calc(var(--cw)/-2);transform-origin:50% calc(var(--ch)*1.9);transform:rotate(calc(var(--i)*11deg));z-index:calc(5 - var(--a));filter:drop-shadow(3px 5px 0 rgba(0,0,0,.45))}
+.fan{--cw:clamp(100px,28vw,172px);--ch:calc(var(--cw)*1.4);position:relative;justify-self:center;width:calc(var(--cw)*3.3);height:calc(var(--ch)*1.34);margin-top:calc(var(--ch)*.1)}
+.pc{position:absolute;left:50%;top:calc(var(--ch)*.18);width:var(--cw);height:var(--ch);margin-left:calc(var(--cw)/-2);transform-origin:50% calc(var(--ch)*1.9);transform:rotate(calc(var(--i)*12deg));z-index:calc(5 - var(--a));filter:drop-shadow(3px 5px 0 rgba(0,0,0,.45))}
 .pc:nth-child(1){--i:-2;--a:2;--k:0}.pc:nth-child(2){--i:-1;--a:1;--k:1}.pc:nth-child(3){--i:0;--a:0;--k:2}.pc:nth-child(4){--i:1;--a:1;--k:3}.pc:nth-child(5){--i:2;--a:2;--k:4}
 .pf{position:absolute;inset:0;transform-style:preserve-3d;transform:perspective(900px) rotateY(180deg);transition:transform .75s var(--pop) calc(var(--k)*.16s)}
 .pf img{position:absolute;inset:0;width:100%;height:100%;backface-visibility:hidden;-webkit-backface-visibility:hidden}
@@ -285,11 +285,11 @@ h2{font-size:clamp(36px,5vw,60px);line-height:1.05;margin:4px 0 14px;font-weight
 /* ---------- WAYS (the four stats) ---------- */
 .ways{background:var(--sky);border-block:3px solid var(--ink);overflow:hidden}
 .hand{display:flex;justify-content:center;margin-top:52px;padding-bottom:20px;perspective:1000px}
-.card{width:250px;flex:0 0 250px;margin-inline:-12px;background:var(--cream);border:3px solid var(--ink);border-radius:20px;box-shadow:var(--shadow);overflow:hidden;transition:transform .35s var(--pop),margin .35s;transform-origin:50% 120%}
-.card:nth-child(1){transform:rotate(-12deg) translateY(18px)}
-.card:nth-child(2){transform:rotate(-4deg)}
-.card:nth-child(3){transform:rotate(4deg)}
-.card:nth-child(4){transform:rotate(12deg) translateY(18px)}
+.card{width:250px;flex:0 0 250px;margin-inline:2px;background:var(--cream);border:3px solid var(--ink);border-radius:20px;box-shadow:var(--shadow);overflow:hidden;transition:transform .35s var(--pop),margin .35s;transform-origin:50% 120%}
+.card:nth-child(1){transform:rotate(-8deg) translateY(14px)}
+.card:nth-child(2){transform:rotate(-3deg)}
+.card:nth-child(3){transform:rotate(3deg)}
+.card:nth-child(4){transform:rotate(8deg) translateY(14px)}
 .hand:hover .card{margin-inline:8px}
 .card:hover{transform:rotate(0) translateY(-22px) scale(1.04)!important;z-index:2}
 .card .pic{aspect-ratio:4/3;overflow:hidden;border-bottom:3px solid var(--ink)}

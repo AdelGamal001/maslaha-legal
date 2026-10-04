@@ -40,6 +40,9 @@ ok(!/\b(import|require|fetch|XMLHttpRequest|https?:\/\/)/.test(read('home.js')),
 ok(!/@import|https?:\/\/(?!www\.w3\.org)/.test(read('home.css').replace(/xmlns='http:\/\/www\.w3\.org\/2000\/svg'/g, '')), 'home.css: no @import, no remote url()')
 for (const f of ['img/adel.webp', 'img/duo.webp', 'img/est/KS.webp', 'img/shop.webp']) ok(!existsSync(join(root, f)), `${f} is gone`)
 ok(!/adel\.webp|duo\.webp|KS\.webp|shop\.webp/.test(html['index.html'] + html['en.html'] + read('home.css')), 'no reference to the removed images')
+const imgs = ['img', 'img/est'].flatMap((d) => readdirSync(join(root, d)).filter((f) => f.endsWith('.webp')).map((f) => d + '/' + f))
+const orphans = imgs.filter((f) => !(html['index.html'] + html['en.html'] + read('home.css')).includes(f) && !f.startsWith('img/est/') || (f.startsWith('img/est/') && !html['index.html'].includes(f.slice(8, -5)) ))
+ok(orphans.length === 0, `every image in img/ is used${orphans.length ? ': ' + orphans.join(', ') : ''}`)
 // only the two redirect stubs + legal pages may differ from main; the lane must not touch them
 try {
   const names = execFileSync('git', ['diff', '--name-only', 'main'], { cwd: root, encoding: 'utf8' }).split('\n').filter(Boolean)
@@ -102,7 +105,7 @@ if (shotsDir) mkdirSync(shotsDir, { recursive: true })
 
 async function open(page, url, w, h, reduce) {
   const bad = []; const errors = []; const notFound = []
-  await page.setViewport({ width: w, height: h, deviceScaleFactor: DPR })
+  await page.setViewport({ width: w, height: h, deviceScaleFactor: w < 721 ? DPR : 1 })
   await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: reduce ? 'reduce' : 'no-preference' }])
   page.removeAllListeners('request'); page.removeAllListeners('response'); page.removeAllListeners('console'); page.removeAllListeners('pageerror')
   page.on('request', (r) => { if (!r.url().startsWith(base) && !r.url().startsWith('data:')) bad.push(r.url()) })
