@@ -1,170 +1,196 @@
 <!doctype html>
-<html lang="en" dir="ltr">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#cfe0ea">
 <meta name="referrer" content="no-referrer">
-<title>Qaadet Maslaha | A free party game about Egyptian paperwork</title>
-<meta name="description" content="Race your friends through Egyptian paperwork. Plus Estimation, the café card game. Free, no ads, no pay-to-win. Coming to iOS and Android.">
-<meta property="og:title" content="Qaadet Maslaha">
-<meta property="og:description" content="Too few desks. Too many people. Everyone needs a stamp. Free, no ads, no pay-to-win.">
+<title>قعدة مصلحة | لعبة بارتي مجانية عن ورق المصالح</title>
+<meta name="description" content="اتسابق مع صحابك تخلّص ورقك في المصلحة. وكمان إستيميشن. مجانية، من غير إعلانات، ومفيش ادفع عشان تكسب. قريب على iOS وأندرويد.">
+<meta property="og:title" content="قعدة مصلحة">
+<meta property="og:description" content="المكاتب قليلة. والناس كتير. والكل محتاج ختم. مجانية ومن غير إعلانات.">
+<link rel="canonical" href="https://maslahagame.com/">
 <meta property="og:image" content="https://maslahagame.com/img/race.webp">
-<link rel="preload" href="fonts/baloo-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/baloo-arabic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="home.css">
-<link rel="alternate" hreflang="ar" href="ar.html">
-<link rel="alternate" hreflang="en" href="index.html">
+<link rel="alternate" hreflang="en" href="en.html">
+<link rel="alternate" hreflang="ar" href="index.html">
 </head>
 <body>
 
 <header class="nav"><div class="wrap">
-  <a class="logo" href="index.html"><span class="seal" aria-hidden="true">ق.م</span>Qaadet Maslaha</a>
-  <nav aria-label="Main"><a class="navig" href="https://www.instagram.com/maslaha_game" rel="noopener noreferrer" aria-label="Instagram"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor" stroke="none"/></svg></a><a href="#how">How it plays</a><a href="#estimation">Estimation</a><a href="#ways">Win your way</a><a href="#play">Get notified</a><a class="lang ar" href="ar.html" lang="ar" hreflang="ar">عربي</a></nav>
+  <a class="logo" href="index.html"><span class="seal" aria-hidden="true">ق.م</span>قعدة مصلحة</a>
+  <nav aria-label="القائمة"><a class="navig" href="https://www.instagram.com/maslaha_game" rel="noopener noreferrer" aria-label="إنستجرام"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor" stroke="none"/></svg></a><a href="#how">بتتلعب إزاي</a><a href="#estimation">إستيميشن</a><a href="#ways">اكسب بطريقتك</a><a href="#play">بلّغني</a><a class="lang" href="en.html" lang="en" hreflang="en">English</a></nav>
 </div></header>
+<div class="qprog" aria-hidden="true"><i></i></div>
 
 <main id="content">
-<div class="hero"><div class="wrap">
+<div class="hero"><div class="papers" aria-hidden="true"><i style="--d:0s;--x:8%;--s:1"></i><i style="--d:3.2s;--x:22%;--s:0.8"></i><i style="--d:1.5s;--x:38%;--s:1.1"></i><i style="--d:5s;--x:55%;--s:0.9"></i><i style="--d:2.4s;--x:70%;--s:1"></i><i style="--d:6.1s;--x:84%;--s:0.85"></i><i style="--d:4.2s;--x:94%;--s:1.05"></i><i style="--d:7.3s;--x:46%;--s:0.75"></i></div><div class="wrap">
   <div>
-    <span class="eyebrow"><span class="dot"></span>Free party game · No ads · 4–11 players</span>
-    <h1>Qaadet Maslaha<span class="ar" lang="ar">قعدة مصلحة</span></h1>
-    <p class="tag">Too few desks. Too many people. Everyone needs a stamp.</p>
-    <p class="lead">Race your friends through Egyptian paperwork. First to finish earns the most points. That still doesn’t guarantee a win.</p>
+    <span class="eyebrow"><span class="dot"></span>لعبة بارتي مجانية · من غير إعلانات · من 4 لـ 11 لاعب</span>
+    <h1>قعدة مصلحة<span class="ar" lang="en" dir="ltr">Qaadet Maslaha</span></h1>
+    <p class="tag">المكاتب قليلة. والناس كتير. والكل محتاج ختم.</p>
+    <p class="lead">اتسابق مع صحابك تخلّص ورقك في المصلحة. اللي يخلّص الأول ياخد أكبر نقط. بس مش شرط يكسب.</p>
     <div class="cta-row">
-      <a class="btn" href="#play">Notify me at launch</a>
-      <a class="btn ghost ig" href="https://www.instagram.com/maslaha_game" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor" stroke="none"/></svg>Follow @maslaha_game</a>
+      <a class="btn" href="#play">بلّغني أول ما تنزل</a>
+      <a class="btn ghost ig" href="https://www.instagram.com/maslaha_game" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor" stroke="none"/></svg>تابع <span dir="ltr">@maslaha_game</span></a>
     </div>
-    <div class="stores"><span class="store">App Store · soon</span><span class="store">Google Play · soon</span></div>
+    <div class="stores"><span class="store">App Store · قريب</span><span class="store">Google Play · قريب</span></div>
   </div>
   <div class="art">
-    <div class="frame"><img src="img/race.webp" width="900" height="1200" alt="Three players dive toward a clerk’s desk, rubber stamps in hand"></div>
-    <div class="ticket" aria-hidden="true"><small>Your number</small><b>047</b><div class="perf">Now serving <span id="num">012</span></div></div>
-    <div class="stampmark" aria-hidden="true">APPROVED?</div>
+    <div class="frame"><img src="img/race.webp" width="900" height="1200" alt="تلات لاعيبة بينطّوا على مكتب الموظف وفي إيدهم أختام"></div>
+    <div class="ticket" aria-hidden="true"><small>رقمك</small><b>047</b><div class="perf">الدور على <span id="num">012</span></div></div>
+    <div class="stampmark" aria-hidden="true">مقبول؟</div>
   </div>
 </div></div>
 
 <div class="board" aria-hidden="true"><div class="track">
-  <span>Now serving 012</span><span>Window 3 is closed</span><span>Come back tomorrow</span><span>Missing one stamp</span><span>Please take a number</span><span>Tea break · 15 min</span>
-  <span>Now serving 012</span><span>Window 3 is closed</span><span>Come back tomorrow</span><span>Missing one stamp</span><span>Please take a number</span><span>Tea break · 15 min</span>
+  <span>الدور على 012</span><span>شباك 3 مقفول</span><span>تعالى بكرة</span><span>ناقصك ختم</span><span>خد رقم واستنى</span><span>بريك شاي · ربع ساعة</span>
+  <span>الدور على 012</span><span>شباك 3 مقفول</span><span>تعالى بكرة</span><span>ناقصك ختم</span><span>خد رقم واستنى</span><span>بريك شاي · ربع ساعة</span>
 </div></div>
 
 <div class="promise"><div class="wrap">
-  <div class="pledge reveal"><span class="seal2" aria-hidden="true">FREE</span><div><b>Completely free</b><span>Download it. Play everything. No price tag.</span></div></div>
-  <div class="pledge reveal"><span class="seal2" aria-hidden="true">NO<br>ADS</span><div><b>No ads. Ever.</b><span>No pop-ups between rounds. Just the game.</span></div></div>
-  <div class="pledge reveal"><span class="seal2" aria-hidden="true">FAIR</span><div><b>No pay-to-win</b><span>Money can’t buy a stamp. Skill and luck do.</span></div></div>
+  <div class="pledge reveal"><span class="seal2" aria-hidden="true">ببلاش</span><div><b>مجانية بالكامل</b><span>نزّلها والعب كل حاجة. من غير ما تدفع.</span></div></div>
+  <div class="pledge reveal"><span class="seal2" aria-hidden="true">من غير<br>إعلانات</span><div><b>مفيش إعلانات خالص</b><span>مفيش إعلان بين الراوندات. اللعبة وبس.</span></div></div>
+  <div class="pledge reveal"><span class="seal2" aria-hidden="true">عادلة</span><div><b>مفيش ادفع عشان تكسب</b><span>الفلوس مش بتشتري ختم. المهارة والحظ بس.</span></div></div>
 </div></div>
 
-<section id="how"><div class="wrap">
-  <p class="kicker ar" lang="ar">بتتلعب إزاي؟</p>
-  <h2>How it plays</h2>
-  <p class="sub">Four steps. Endless chaos. Every match is a new office and a new file.</p>
-  <div class="steps">
-    <article class="form reveal"><img src="img/window2.webp" width="800" height="1066" alt="Citizens rush to a newly opened service window" loading="lazy"><div class="body"><span class="no"></span><h3>Get your file</h3><p>Each match deals you a random task. Every request needs different papers.</p></div><span class="ok" aria-hidden="true">OK</span></article>
-    <article class="form reveal"><img src="img/sabotage.webp" width="800" height="1066" alt="A stern clerk locks a chain of cards on his counter" loading="lazy"><div class="body"><span class="no"></span><h3>Grab a spot in line</h3><p>Desks are fewer than players. Each clerk accepts only a few.</p></div><span class="ok" aria-hidden="true">OK</span></article>
-    <article class="form reveal"><img src="img/shop.webp" width="800" height="1066" alt="A sly shopkeeper spins a shelf of card boxes" loading="lazy"><div class="body"><span class="no"></span><h3>Win the right cards</h3><p>A card shop opens between rounds. One good card flips the match.</p></div><span class="ok" aria-hidden="true">OK</span></article>
-    <article class="form reveal"><img src="img/auction.webp" width="800" height="1066" alt="A sweaty player pulls back his coins under a clerk’s glare" loading="lazy"><div class="body"><span class="no"></span><h3>Keep your nerve</h3><p>A body bar and a nerves bar. Empty either, and you’re out.</p></div><span class="ok" aria-hidden="true">OK</span></article>
-  </div>
+<div class="stats"><div class="wrap"><div class="stat reveal"><b data-to="31">31</b><span>ميني جيم</span></div><div class="stat reveal"><b data-to="62">62</b><span>موظف بمزاج</span></div><div class="stat reveal"><b data-to="60">60</b><span>كارت</span></div><div class="stat reveal"><b data-to="11">11</b><span>لاعب في الأوضة</span></div></div></div>
+
+<section id="how" class="how"><div class="wrap">
+  <p class="kicker" lang="en" dir="ltr">How it plays</p>
+  <h2>بتتلعب إزاي؟</h2>
+  <p class="sub">ست خطوات من أول ما تقعد لحد ما تتختم ورقتك.</p>
+  <ol class="flow">
+    <li class="stepx reveal">
+      <div class="stepx-pic"><img src="img/selfie.webp" alt="شلة صحاب في سيلفي زحمة" loading="lazy"><div class="wgt code" aria-hidden="true"><small>كود الأوضة</small><b><span>M</span><span>A</span><span>S</span><span>7</span><span>L</span></b><i class="joiners"><u></u><u></u><u></u><u></u></i></div><span class="okx" aria-hidden="true">تمام</span></div>
+      <div class="stepx-txt"><span class="stepx-no">01</span><h3>اقعد القعدة</h3><p>اعمل أوضة وابعت الكود لصحابك، أو ادخل أوضة حد فيهم. من 4 لـ 11 لاعب.</p><div class="chipsx"><span>أوضة بكود</span><span>من 4 لـ 11 لاعب</span><span>ماتش قصير أو طويل</span></div></div>
+    </li>
+    <li class="stepx reveal">
+      <div class="stepx-pic"><img src="img/coop.webp" alt="موظفين ملمومين حوالين ورقة" loading="lazy"><div class="wgt file" aria-hidden="true"><i></i><i></i><i></i></div><span class="okx" aria-hidden="true">تمام</span></div>
+      <div class="stepx-txt"><span class="stepx-no">02</span><h3>استلم ملفك</h3><p>أول الماتش كل واحد بياخد مهمة عشوائية. كل مهمة ليها ورق وطلبات مختلفة.</p><div class="chipsx"><span>مهمة عشوائية</span><span>ورق مختلف كل مرة</span></div></div>
+    </li>
+    <li class="stepx reveal">
+      <div class="stepx-pic"><img src="img/window2.webp" alt="طابور قدام شباك" loading="lazy"><div class="wgt queue" aria-hidden="true"><small>الدور على</small><b class="qn">012</b><em>انت: 047</em></div><span class="okx" aria-hidden="true">تمام</span></div>
+      <div class="stepx-txt"><span class="stepx-no">03</span><h3>الحق دورك في الطابور</h3><p>المكاتب أقل من اللاعبين. والموظف بيقبل عدد قليل وبعدين يحوّلك لحد تاني.</p><div class="chipsx"><span>مكاتب أقل من اللاعبين</span><span>الاستنى بيحرق أعصابك</span></div></div>
+    </li>
+    <li class="stepx reveal">
+      <div class="stepx-pic"><img src="img/race.webp" alt="لاعب بينط على المكتب بختم" loading="lazy"><div class="wgt visit" aria-hidden="true"><small>المزاج:</small><b class="moodtxt" dir="auto"><span>😴 نايم</span><span>🍵 بريك شاي</span><span>📎 بالورقة</span><span>😠 معصّب</span></b></div><i class="bigstamp2" aria-hidden="true"></i><span class="okx" aria-hidden="true">تمام</span></div>
+      <div class="stepx-txt"><span class="stepx-no">04</span><h3>خلّص الزيارة</h3><p>قبل ما تدخل بتشوف مزاج الموظف. وقدامه بتلعب ميني جيم سريع. لو نجحت، ورقتك اتختمت.</p><div class="chipsx"><span>ميني جيم من 5 لـ 20 ثانية</span><span>مزاج الموظف بيفرق</span></div></div>
+    </li>
+    <li class="stepx reveal">
+      <div class="stepx-pic"><img src="img/shop.webp" alt="بياع بيلف رف كروت" loading="lazy"><div class="wgt auction" aria-hidden="true"><b class="cd">30<small>ث</small></b><em class="bids"><u>+2</u><u>+5</u><u>+1</u><u>+8</u></em><span>مزايدة</span></div><span class="okx" aria-hidden="true">تمام</span></div>
+      <div class="stepx-txt"><span class="stepx-no">05</span><h3>زايد على الكروت</h3><p>بين الراوندات بيفتح محل كروت بمزاد لايف. الكل بيزايد سوا، وبعد 30 ثانية الكروت بتتسلّم.</p><div class="chipsx"><span>مزاد لايف</span><span>30 ثانية</span><span>كارت ممكن يقلب الماتش</span></div></div>
+    </li>
+    <li class="stepx reveal">
+      <div class="stepx-pic"><img src="img/sabotage.webp" alt="لاعيبة متضايقين قدام موظف" loading="lazy"><div class="bars" aria-hidden="true"><div class="bar body"><span>الجسم</span><i></i></div><div class="bar nerve"><span>الأعصاب</span><i></i></div></div><span class="okx" aria-hidden="true">تمام</span></div>
+      <div class="stepx-txt"><span class="stepx-no">06</span><h3>خلّي أعصابك حديد</h3><p>عندك بار للجسم وبار للأعصاب. الطابور والتخريب بيقللوهم. لو واحد خلص، تطلع برة. وفي الآخر، النقط هي اللي بتحسم.</p><div class="chipsx"><span>بار الجسم</span><span>بار الأعصاب</span><span>النقط بتحسم</span></div></div>
+    </li>
+  </ol>
 </div></section>
 
 <section id="estimation" class="est">
   <div class="bg" style="background-image:url(img/cafe.webp)" aria-hidden="true"></div>
   <div class="wrap">
     <div class="reveal">
-      <p class="kicker ar" lang="ar">وكمان إستيميشن</p>
-      <h2>Estimation, too.</h2>
-      <p class="sub">The card game every Egyptian café knows. Built in, online, with your friends.</p>
-      <div class="chips"><span>Call your tricks</span><span>Hit your number</span><span>Play online with friends</span></div>
+      <p class="kicker" lang="en" dir="ltr">Estimation, too</p>
+      <h2>وكمان إستيميشن</h2>
+      <p class="sub">لعبة الكوتشينة اللي كل قهوة في مصر عارفاها. جوه اللعبة، أونلاين، مع صحابك.</p>
+      <div class="chips"><span>اطلب لمّاتك</span><span>جيب رقمك</span><span>العب أونلاين مع صحابك</span></div>
     </div>
-    <div class="fan" aria-hidden="true">
+    <div class="fan" aria-hidden="true" dir="ltr">
       <img class="pc" src="img/est/QH.webp" width="379" height="530" alt="" loading="lazy">
       <img class="pc" src="img/est/JD.webp" width="379" height="530" alt="" loading="lazy">
       <img class="pc" src="img/est/KS.webp" width="379" height="530" alt="" loading="lazy">
       <img class="pc" src="img/est/KD.webp" width="379" height="530" alt="" loading="lazy">
       <img class="pc" src="img/est/QC.webp" width="379" height="530" alt="" loading="lazy">
-      <span class="call">I call 5!</span>
+      <span class="call" dir="rtl">طالب 5!</span>
     </div>
   </div>
 </section>
 
 <section id="ways" class="ways"><div class="wrap">
-  <p class="kicker ar" lang="ar">اكسب بطريقتك</p>
-  <h2>Win your way</h2>
-  <p class="sub">Pick a style. Mix them. Or ruin everyone else’s.</p>
+  <p class="kicker" lang="en" dir="ltr">Win your way</p>
+  <h2>اكسب بطريقتك</h2>
+  <p class="sub">اختار أسلوبك. اخلط بينهم. أو بوّظ على الكل.</p>
   <div class="hand">
-    <div class="card"><div class="pic"><img src="img/coop.webp" alt="" loading="lazy"></div><div class="txt"><span class="suit" lang="ar">واسطة</span><h3>Connections</h3><p>Know the right person. Skip the line.</p></div></div>
-    <div class="card"><div class="pic"><img src="img/race.webp" alt="" loading="lazy"></div><div class="txt"><span class="suit" lang="ar">سرعة</span><h3>Speed</h3><p>Finish before the window closes.</p></div></div>
-    <div class="card"><div class="pic"><img src="img/sabotage.webp" alt="" loading="lazy"></div><div class="txt"><span class="suit" lang="ar">تخريب</span><h3>Sabotage</h3><p>Slow others down. Quietly.</p></div></div>
-    <div class="card"><div class="pic"><img src="img/auction.webp" alt="" loading="lazy"></div><div class="txt"><span class="suit" lang="ar">تحويش</span><h3>Money</h3><p>Save now. Buy the big card later.</p></div></div>
+    <div class="card"><div class="pic"><img src="img/coop.webp" alt="" loading="lazy"></div><div class="txt"><span class="suit" lang="en">Connections</span><h3>الواسطة</h3><p>اعرف الشخص الصح. واعدّي الطابور.</p></div></div>
+    <div class="card"><div class="pic"><img src="img/race.webp" alt="" loading="lazy"></div><div class="txt"><span class="suit" lang="en">Speed</span><h3>السرعة</h3><p>خلّص قبل ما الشباك يقفل.</p></div></div>
+    <div class="card"><div class="pic"><img src="img/sabotage.webp" alt="" loading="lazy"></div><div class="txt"><span class="suit" lang="en">Sabotage</span><h3>التخريب</h3><p>عطّل غيرك. من غير ما يحس.</p></div></div>
+    <div class="card"><div class="pic"><img src="img/auction.webp" alt="" loading="lazy"></div><div class="txt"><span class="suit" lang="en">Money</span><h3>التحويش</h3><p>حوّش دلوقتي. واشتري الكارت الكبير بعدين.</p></div></div>
   </div>
 </div></section>
 
 <section id="clerks" class="clerks"><div class="wrap">
-  <div class="sleep reveal"><img src="img/sleepy.webp" width="700" height="509" alt="A clerk asleep on his desk beside a stack of stamped papers" loading="lazy"><div class="zzz" aria-hidden="true"><i>Z</i><i>Z</i><i>Z</i></div></div>
+  <div class="sleep reveal"><img src="img/sleepy.webp" width="700" height="509" alt="موظف نايم على مكتبه جنب كومة ورق متختّم" loading="lazy"><div class="zzz" aria-hidden="true"><i>Z</i><i>Z</i><i>Z</i></div></div>
   <div class="reveal">
-    <p class="kicker ar" lang="ar">موظفين انت عارفهم</p>
-    <h2>Clerks you already know</h2>
-    <p class="sub">Every clerk has a mood, a strength and a weakness. Read them right, or wait forever.</p>
-    <div class="moods"><span class="mood">😴 Sleepy</span><span class="mood">🍵 On tea break</span><span class="mood">📎 By the book</span><span class="mood">🤝 Has a cousin</span></div>
-    <div class="boss"><div class="door" aria-hidden="true"></div><div><b>Last one standing?</b>Then you face Madam Afaf.</div></div>
+    <p class="kicker" lang="en" dir="ltr">Clerks you already know</p>
+    <h2>موظفين انت عارفهم</h2>
+    <p class="sub">كل موظف ليه مزاج وميزة وعيب. افهمه صح، أو استنى للأبد.</p>
+    <div class="moods"><span class="mood">😴 نايم</span><span class="mood">🍵 في بريك الشاي</span><span class="mood">📎 ماشي بالورقة</span><span class="mood">🤝 ليه قريب</span></div>
+    <div class="boss"><div class="door" aria-hidden="true"></div><div><b>فضلت آخر واحد؟</b>يبقى عندك مقابلة مع مدام عفاف.</div></div>
   </div>
 </div></section>
 
 <section class="chars"><div class="wrap">
-  <figure class="polaroid reveal"><img src="img/selfie.webp" width="900" height="1200" alt="A crowded group selfie of quirky office characters" loading="lazy"><figcaption class="ar" lang="ar">قعدة مصلحة</figcaption></figure>
+  <figure class="polaroid reveal"><img src="img/selfie.webp" width="900" height="1200" alt="سيلفي زحمة لشخصيات المصلحة" loading="lazy"><figcaption>قعدة مصلحة</figcaption></figure>
   <div class="reveal">
-    <p class="kicker ar" lang="ar">شخصيتك</p>
-    <h2>Be someone. Badly.</h2>
-    <p class="sub">Every character gets a ridiculous job title and one special ability.</p>
+    <p class="kicker" lang="en" dir="ltr">Your character</p>
+    <h2>شخصيتك</h2>
+    <p class="sub">كل شخصية ليها مسمى وظيفي محرج وقدرة خاصة واحدة.</p>
     <div class="opts">
-      <div class="opt"><span class="ic">1</span><div><b>Build your own</b><span>Shape your character and spread the stats yourself.</span></div></div>
-      <div class="opt"><span class="ic">2</span><div><b>Pick a ready one</b><span>Jump in fast with a character that’s ready to queue.</span></div></div>
-      <div class="opt"><span class="ic">3</span><div><b>One ability each</b><span>A single rule your character is allowed to break.</span></div></div>
+      <div class="opt"><span class="ic">1</span><div><b>اعملها بنفسك</b><span>شكّل شخصيتك ووزّع نقطها بإيدك.</span></div></div>
+      <div class="opt"><span class="ic">2</span><div><b>اختار واحدة جاهزة</b><span>ادخل على طول بشخصية جاهزة للطابور.</span></div></div>
+      <div class="opt"><span class="ic">3</span><div><b>قدرة واحدة لكل شخصية</b><span>قاعدة واحدة مسموحلك تكسرها.</span></div></div>
     </div>
   </div>
 </div></section>
 
 <section id="custom" class="custom"><div class="wrap">
   <div class="reveal">
-    <p class="kicker ar" lang="ar">شخصيتك بوشّك</p>
-    <h2>Your face. Our ink. <span class="soon">SOON</span></h2>
-    <p class="sub">Want to play as yourself? Our artists draw a custom character from your photo, in the game’s style.</p>
-    <span class="price">Small one-time fee</span>
-    <p class="sub">It’s cosmetic only. It never gives anyone an advantage.</p>
-    <div class="facts-row"><span>Drawn by our team</span><span>Your look, our style</span><span>Zero gameplay advantage</span></div>
-    <div class="cta-row" style="margin-top:24px"><a class="btn" href="mailto:hello@maslahagame.com?subject=Custom%20character">Ask about a custom character</a></div>
+    <p class="kicker" lang="en" dir="ltr">Your face. Our ink.</p>
+    <h2>شخصيتك بوشّك <span class="soon">قريب</span></h2>
+    <p class="sub">عايز تلعب بنفسك؟ فريقنا يرسملك شخصية من صورتك، بنفس ستايل اللعبة.</p>
+    <span class="price">مقابل بسيط مرة واحدة</span>
+    <p class="sub">شكل بس. عمرها ما بتديك أي ميزة في اللعب.</p>
+    <div class="facts-row"><span>رسم فريقنا</span><span>شكلك بستايلنا</span><span>من غير أي ميزة في اللعب</span></div>
+    <div class="cta-row" style="margin-top:24px"><a class="btn" href="mailto:hello@maslahagame.com?subject=Custom%20character">اسأل عن شخصيتك</a></div>
   </div>
-  <div class="case reveal" aria-label="Case study: Othman">
-    <figure><img src="img/othman-photo.webp" width="720" height="960" alt="Othman" loading="lazy"><figcaption><a href="https://www.instagram.com/_othman_007_" rel="noopener noreferrer" dir="ltr">@_othman_007_</a></figcaption></figure>
+  <div class="case reveal" aria-label="مثال: عثمان">
+    <figure><img src="img/othman-photo.webp" width="720" height="960" alt="عثمان" loading="lazy"><figcaption><a href="https://www.instagram.com/_othman_007_" rel="noopener noreferrer" dir="ltr">@_othman_007_</a></figcaption></figure>
     <span class="arrow" aria-hidden="true">→</span>
-    <figure><img src="img/othman-char.webp" width="720" height="960" alt="Othman — In the game" loading="lazy"><figcaption>In the game</figcaption></figure>
-    <div class="turn"><img src="img/othman-turn.webp" width="1100" height="629" alt="Othman’s character from four angles" loading="lazy"><span>Ready to queue, from every angle</span></div>
+    <figure><img src="img/othman-char.webp" width="720" height="960" alt="عثمان — في اللعبة" loading="lazy"><figcaption>في اللعبة</figcaption></figure>
+    <div class="turn"><img src="img/othman-turn.webp" width="1100" height="629" alt="شخصية عثمان من أربع زوايا" loading="lazy"><span>جاهز للطابور، من كل الزوايا</span></div>
   </div>
 </div></section>
 
 <section id="maker" class="maker"><div class="wrap">
-  <figure class="polaroid reveal"><img src="img/adel.webp" width="800" height="800" alt="Adel Gamal, drawn in the game’s style" loading="lazy"><figcaption class="ar" lang="ar">عادل جمال</figcaption></figure>
+  <figure class="polaroid reveal"><img src="img/adel.webp" width="800" height="800" alt="عادل جمال مرسوم بستايل اللعبة" loading="lazy"><figcaption>عادل جمال</figcaption></figure>
   <div class="reveal">
-    <p class="kicker ar" lang="ar">مين ورا القعدة؟</p>
-    <h2>About the maker</h2>
-    <p class="sub">I’m Adel Gamal, a creative director with 16 years in advertising. Not a programmer.</p>
-    <p class="sub" style="margin-top:12px">Every game I played felt like it was missing something. So I thought: why not make the one I actually want to play? AI made that possible, so I built Qaadet Maslaha with it. The code, the characters, even the cards.</p>
-    <div class="facts-row"><span>Creative director · 16 years</span><span>Not a programmer</span><span>Built with AI</span></div>
-    <div class="cta-row" style="margin-top:24px"><a class="btn ghost ig" href="https://www.instagram.com/adelgamal001" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor" stroke="none"/></svg>Follow @adelgamal001</a></div>
+    <p class="kicker" lang="en" dir="ltr">About the maker</p>
+    <h2>مين ورا القعدة؟</h2>
+    <p class="sub">أنا عادل جمال، كريتيف دايركتور بقالي 16 سنة في الإعلانات. ومش مبرمج.</p>
+    <p class="sub" style="margin-top:12px">كل ما ألعب لعبة أحس إن فيها حاجة ناقصة. فقلت: ما أعمل أنا اللعبة اللي نفسي ألعبها؟ الفكرة والقواعد والشخصيات والموظفين والنكت، كلها من تأليفي. والكود كله؟ ده شغل الـ AI. اشتغلنا كتف في كتف: أنا المخ، وهو العضلات 😄</p>
+    <div class="facts-row"><span>الفكرة والتصميم: عادل</span><span>الكود: AI</span><span>كتف في كتف</span></div>
+    <div class="cta-row" style="margin-top:24px"><a class="btn ghost ig" href="https://www.instagram.com/adelgamal001" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor" stroke="none"/></svg><span dir="ltr">@adelgamal001</span></a></div>
   </div>
-</div></section>
+</div>
+  <figure class="duo reveal"><img src="img/duo.webp" width="1400" height="1050" alt="أنا المخ، وهو العضلات" loading="lazy"><figcaption>أنا المخ، وهو العضلات</figcaption></figure>
+</section>
 
 <section id="play" class="final"><div class="wrap">
-  <p class="kicker ar" lang="ar">عايز تلعبها أول واحد؟</p>
-  <h2>Get stamped first. Play on day one.</h2>
-  <p class="sub" style="margin-inline:auto">Email us. We’ll tell you on launch day.</p>
-  <a class="bigstamp" href="mailto:hello@maslahagame.com?subject=Notify%20me%20at%20launch">NOTIFY<br>ME</a>
-  <a class="btn ghost ig" style="margin-top:26px" href="https://www.instagram.com/maslaha_game" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor" stroke="none"/></svg>Follow the game on Instagram</a>
-  <a class="mail" href="mailto:hello@maslahagame.com">hello@maslahagame.com</a>
+  <p class="kicker" lang="en" dir="ltr">Want to play first?</p>
+  <h2>عايز تلعبها أول واحد؟</h2>
+  <p class="sub" style="margin-inline:auto">ابعتلنا إيميل، وهنبلغك يوم النزول.</p>
+  <a class="bigstamp" href="mailto:hello@maslahagame.com?subject=Notify%20me%20at%20launch">بلّغني</a>
+  <a class="btn ghost ig" style="margin-top:26px" href="https://www.instagram.com/maslaha_game" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor" stroke="none"/></svg>تابع اللعبة على إنستجرام</a>
+  <a class="mail" href="mailto:hello@maslahagame.com" dir="ltr">hello@maslahagame.com</a>
 </div></section>
 </main>
 
 <footer><div class="wrap">
-  <small>© 2026 Qaadet Maslaha · Made by <a href="https://www.instagram.com/adelgamal001" rel="noopener noreferrer">Adel Gamal</a></small>
-  <nav aria-label="Game information"><a href="privacy-en.html">Privacy</a><a href="terms-en.html">Terms</a><a href="support-en.html">Support</a><a href="account-deletion-en.html">Data deletion</a><a href="https://www.instagram.com/maslaha_game" rel="noopener noreferrer">Instagram</a></nav>
+  <small>© 2026 قعدة مصلحة · من صنع <a href="https://www.instagram.com/adelgamal001" rel="noopener noreferrer">عادل جمال</a></small>
+  <nav aria-label="معلومات اللعبة"><a href="privacy.html">الخصوصية</a><a href="terms.html">الشروط</a><a href="support.html">الدعم</a><a href="account-deletion.html">حذف البيانات</a><a href="https://www.instagram.com/maslaha_game" rel="noopener noreferrer">إنستجرام</a></nav>
 </div></footer>
 
 <script>
@@ -172,6 +198,22 @@
 document.querySelectorAll('.reveal,.fan').forEach((el,i)=>{if(el.classList.contains('form'))el.style.transitionDelay=(i%4)*120+'ms';io.observe(el)});
 const n=document.getElementById('num');let v=12;
 if(n&&!matchMedia('(prefers-reduced-motion: reduce)').matches)setInterval(()=>{v=v>=46?12:v+1;n.textContent=String(v).padStart(3,'0')},1400);})();
+</script>
+<script>
+(()=>{const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const bar=document.querySelector('.qprog i'),flow=document.querySelector('.flow');
+const onScroll=()=>{const h=document.documentElement;const p=h.scrollTop/((h.scrollHeight-h.clientHeight)||1);if(bar)bar.style.transform='scaleX('+p+')';
+if(flow){const r=flow.getBoundingClientRect();const f=Math.min(1,Math.max(0,(innerHeight*.6-r.top)/r.height));flow.style.setProperty('--fill',f)}};
+addEventListener('scroll',onScroll,{passive:true});onScroll();
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;const b=e.target;io.unobserve(b);const to=+b.dataset.to;if(rm)return;
+let t0=null;const step=t=>{if(t0===null)t0=t;const k=Math.min(1,(t-t0)/1200);b.textContent=Math.round(to*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(step)};b.textContent='0';requestAnimationFrame(step)}),{threshold:.6});
+document.querySelectorAll('.stat b').forEach(b=>io.observe(b));})();
+</script>
+<script>
+(()=>{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+const run=(el,fn)=>{const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){fn();io.disconnect()}}),{threshold:.4});io.observe(el)};
+const q=document.querySelector('.qn');if(q)run(q,()=>{let v=12;setInterval(()=>{v=v>=46?12:v+1;q.textContent=String(v).padStart(3,'0')},900)});
+const c=document.querySelector('.cd');if(c)run(c,()=>{let t=30;const s=c.querySelector('small').outerHTML;setInterval(()=>{t=t<=0?30:t-1;c.innerHTML=t+s},1000)});})();
 </script>
 </body>
 </html>
