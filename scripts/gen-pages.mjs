@@ -41,7 +41,7 @@ const L = {
       'فتحي المقص بيبطّأ اللي حواليه', 'عبد الرحمن بيغرّقك استيكرات ونصايح', 'الحج ثلعوه بيجري ورا أقرب واحد',
       'الشحاتين بيجروا من الزلحاوي', 'الشحاتين مابيقربوش من أبلة صفاء', 'حمار جحا بيحجز لك مكانك',
       'نينجا الطابور بيعدّي من الزحمة', 'رأفت الهجام بيبدّل ورقه مع اللي يعدّي', 'عبده الكهربائي بيقطع النور على الكل',
-      'آلاء بتدوّر لك على الملف الناقص',
+      'الموظف الرايق بيدّيك وقت أكتر',
     ],
     pledges: [
       ['ببلاش', 'مجانية', 'نزّلها وابدأ العب ببلاش. الشراء من جوه اللعبة اختياري.'],
@@ -56,8 +56,8 @@ const L = {
           p: 'اعمل أوضة وابعت الكود لصحابك، أو ضيف بوتات. ولو حد فصل، بوت بياخد مكانه لحد ما يرجع.',
           chips: ['كود من 4 حروف', 'من 4 لـ 11 لاعب', 'ماتش قصير أو طويل'], ok: 'تمام' },
         { img: 'step-chars', alt: 'تلات شخصيات: جزار وطيار دليفري ورجل أعمال', h: 'اختار شخصيتك',
-          p: 'كل شخصية ليها 13 نقطة على أربع ستات: قوة وسرعة وذكاء وشياكة. ومعاها قدرة واحدة بتكسر قاعدة.',
-          chips: ['37 شخصية', 'قدرة واحدة لكل شخصية', 'ستات من 1 لـ 5'], ok: 'تمام' },
+          p: 'كل شخصية ليها 13 نقطة على أربع صفات: قوة وسرعة وذكاء وشياكة. ومعاها قدرة واحدة بتكسر قاعدة.',
+          chips: ['37 شخصية', 'قدرة واحدة لكل شخصية', 'كل صفة من 1 لـ 5'], ok: 'تمام' },
         { img: 'step-hazards', alt: 'شحاتين لازقين في لاعب والحج ثلعوه بيجري ورا حد', h: 'اجري على ورقك',
           p: 'ملفك فيه ورق (3 ورقات في الدور الأول)، وكل ورقة ليها شباك. دوّر عليها في المصلحة المتاهة. فيه شبابيك وهمية، وشحاتين بيلزقوا فيك، والحج ثلعوه بيجري ورا أقرب لاعب. والجري بياكل من طاقتك.',
           chips: ['ملف لكل لاعب', 'شبابيك وهمية', 'شحاتين وثلعوه'], ok: 'تمام' },
@@ -88,8 +88,8 @@ const L = {
       call: 'كول: 5 هارت',
     },
     ways: {
-      kicker: 'الستات', h2: 'اكسب بطريقتك',
-      sub: 'كل شخصية ليها 13 نقطة على أربع ستات، واللي عالي فيها هو طريقك للكسب. اختار الشخصية اللي تناسب أسلوبك.',
+      kicker: 'الصفات', h2: 'اكسب بطريقتك',
+      sub: 'كل شخصية ليها 13 نقطة على أربع صفات، واللي عالي فيها هو طريقك للكسب. اختار الشخصية اللي تناسب أسلوبك.',
       cards: [
         { img: 'sabotage', label: 'في الممر', h: 'قوة عضلية', p: 'بتزق الأضعف وتقلل ضرر ثلعوه.', ex: 'مثال: حمادة الجزار' },
         { img: 'race', label: 'في السباق', h: 'سرعة', p: 'بتغيّر سرعة حركتك. توصل الأول وتسبق الزحمة.', ex: 'مثال: كيمو الدليفري' },
@@ -104,7 +104,7 @@ const L = {
       moods: ['رايق', 'فايق', 'مزهّق', 'متنرفز', 'على آخره'],
       alts: ['الموظف رايق ومكتبه مرتب', 'الموظف فايق وفيه شوية ورق على المكتب', 'الموظف مزهّق والورق بيزيد', 'الموظف متنرفز والورق كوم والشاي اتدلق', 'الموظف على آخره والورق مغطي المكتب'],
       bossH: 'وصلت آخر مصلحة؟',
-      boss: 'يبقى عندك مقابلة مع آلاء عبد الهادي، سكرتيرة مدير المصلحة. بتبعتك للإجراء اللي إنت أضعف فيه، ومش هتدخل للمدير غير لما تعدّيه.',
+      boss: 'يبقى عندك مقابلة مع سكرتيرة مدير المصلحة. بتبعتك للإجراء اللي إنت أضعف فيه، ومش هتدخل للمدير غير لما تعدّيه.',
     },
     chars: {
       kicker: 'شخصيتك', h2: 'اختار شخصيتك', alt: 'سيلفي زحمة لشخصيات المصلحة', cap: 'قعدة مصلحة',
@@ -158,7 +158,7 @@ const L = {
       'Fathy the barber slows everyone near him', 'Abdelrahman floods you with stickers and advice', 'Haj Thal3awa chases whoever is closest',
       'Beggars run away from El-Zalhawy', 'Beggars keep away from Miss Safaa', 'Goha’s donkey holds your place in line',
       'Queue Ninja walks straight through the crowd', 'Raafat the swindler swaps papers with passers-by', 'Abdo the electrician cuts the lights',
-      'Alaa is looking for your missing file',
+      'A calm clerk gives you more time',
     ],
     pledges: [
       ['FREE', 'Free to play', 'Download it and start playing for free. Buying things inside the game is optional.'],
@@ -221,7 +221,7 @@ const L = {
       moods: ['Calm', 'Alert', 'Fed up', 'Irritated', 'At the limit'],
       alts: ['A calm clerk with a tidy desk', 'An alert clerk with a few papers on the desk', 'A fed-up clerk with papers piling up', 'An irritated clerk, papers heaped and tea spilled', 'A clerk at the limit, papers covering the desk'],
       bossH: 'Reached the last office?',
-      boss: 'Then you have an appointment with Alaa Abdel-Hady, the director’s secretary. She sends you to the procedure you’re weakest at, and you don’t get in to see the director until you pass it.',
+      boss: 'Then you have an appointment with the director’s secretary. She sends you to the procedure you’re weakest at, and you don’t get in to see the director until you pass it.',
     },
     chars: {
       kicker: 'Your character', h2: 'Pick your character', alt: 'A crowded group selfie of quirky office characters', cap: 'قعدة مصلحة',
