@@ -221,3 +221,6 @@ footer small{color:var(--ink-soft)}
 .case figcaption a{text-decoration:none}
 .case figcaption a:hover{text-decoration:underline}
 footer small a{color:inherit;font-weight:800}
+.btn.ig svg{flex:0 0 auto}
+.nav nav a.navig{display:inline-grid;place-items:center;width:42px;height:42px;padding:0;border-radius:50%}
+@media (max-width:720px){.nav nav a.navig{display:inline-grid}}
