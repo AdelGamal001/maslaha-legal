@@ -1,0 +1,45 @@
+# Writes stats.json for the «أرقام حقيقية» box (visitors from PostHog, followers from Instagram), every 6 hours and on demand.
+# Secrets (Settings > Secrets and variables > Actions > New repository secret):
+#   POSTHOG_PERSONAL_API_KEY   a PostHog personal API key with the "Query Read" scope (project 293009, EU cloud)
+#   IG_TOKEN                   a long-lived Instagram User access token of the game's professional account (instagram_business_basic)
+# A missing secret only means that tile keeps its old value (or shows «قريب»); the job never fails because of it.
+name: stats
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stats
+  cancel-in-progress: false
+
+jobs:
+  stats:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Fetch the numbers
+        env:
+          POSTHOG_PERSONAL_API_KEY: ${{ secrets.POSTHOG_PERSONAL_API_KEY }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+        run: node scripts/fetch-stats.mjs
+      - name: Commit stats.json if a number changed
+        run: |
+          if git diff --quiet -- stats.json; then
+            echo "stats.json unchanged"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- stats.json
+          git commit -m "chore(stats): update the numbers"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

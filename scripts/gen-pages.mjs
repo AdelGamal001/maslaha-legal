@@ -9,6 +9,8 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const IG = 'https://www.instagram.com/maslaha_game'
 const IG_OTHMAN = 'https://www.instagram.com/_othman_007_'
 const IG_ADEL = 'https://www.instagram.com/adelgamal001'
+// the game server's public counts (server/src/stats.ts: { rooms, players, at }); the page asks it once a minute
+const LIVE_URL = 'https://de-fra-2bb59b4f.colyseus.cloud/stats'
 const svg = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor" stroke="none"/></svg>'
 
 // papers: [left %, size, delay s (negative = already falling), duration s, start angle, sideways px]
@@ -49,6 +51,9 @@ const L = {
       ['عادلة', 'مفيش ادفع عشان تكسب', 'الفلوس مش بتشتري الفوز. الشخصيات متوازنة، والمهارة والحظ بيحسموا.'],
     ],
     stats: [[54, 'إجراء'], [216, 'موظف بمزاج'], [37, 'شخصية بقدرتها'], [11, 'لاعب في الأوضة']],
+    real: { kicker: 'من غير تجميل', h2: 'أرقام حقيقية', sub: 'بتتحدّث لوحدها كل كام ساعة.', aria: 'أرقام الموقع واللعبة',
+      tiles: [['visitors', 'زوار الموقع', 'آخر 30 يوم'], ['ig', 'متابعين إنستجرام', 'صفحة اللعبة'], ['live', 'بيلعبوا دلوقتي', 'في أوض أونلاين']],
+      soon: 'قريب', none: '—', updated: 'آخر تحديث:', months: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'] },
     how: {
       kicker: 'الخطوات', h2: 'بتتلعب إزاي؟', sub: 'ست خطوات، من أول ما تقعد لحد ما تعرف مين كسب.',
       steps: [
@@ -166,6 +171,9 @@ const L = {
       ['FAIR', 'No pay-to-win', 'Money doesn’t buy the win. Characters are balanced; skill and luck decide.'],
     ],
     stats: [[54, 'procedures'], [216, 'moody clerks'], [37, 'characters'], [11, 'players per room']],
+    real: { kicker: 'No spin', h2: 'Real numbers', sub: 'Refreshed automatically every few hours.', aria: 'Site and game numbers',
+      tiles: [['visitors', 'Site visitors', 'last 30 days'], ['ig', 'Instagram followers', 'the game page'], ['live', 'Playing right now', 'in online rooms']],
+      soon: 'Soon', none: '—', updated: 'Last updated:', months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] },
     how: {
       kicker: 'The steps', h2: 'How it plays', sub: 'Six steps, from taking a seat to finding out who won.',
       steps: [
@@ -280,6 +288,15 @@ function page(c) {
   const board = c.board.map((t) => `<span>${t}</span>`).join('')
   const pledges = c.pledges.map(([seal, b, s]) => `  <div class="pledge reveal"><span class="seal2" aria-hidden="true">${seal}</span><div><b>${b}</b><span>${s}</span></div></div>`).join('\n')
   const stats = c.stats.map(([n, t]) => `<div class="stat reveal"><b data-to="${n}">${n}</b><span>${t}</span></div>`).join('')
+  const r = c.real
+  const tiles = r.tiles.map(([k, b, s]) => `<div class="rt" data-k="${k}" data-state="wait">${k === 'live' ? '<i class="rdot" aria-hidden="true"></i>' : ''}<b>${r.none}</b><span>${b}</span><small>${s}</small></div>`).join('')
+  const real = `<section id="real" class="real" data-json="stats.json" data-live="${LIVE_URL}" data-soon="${r.soon}" data-none="${r.none}" data-months="${r.months.join(',')}" data-updated="${r.updated}"><div class="wrap">
+  <div class="realbox reveal" role="group" aria-label="${r.aria}">
+    <div class="realhead"><p class="kicker">${r.kicker}</p><h2>${r.h2}</h2><p class="sub">${r.sub}</p></div>
+    <div class="real3">${tiles}</div>
+    <p class="upd" hidden></p>
+  </div>
+</div></section>`
   const nav = c.nav.map(([h, t]) => `<a href="${h}">${t}</a>`).join('')
   const opts = c.chars.opts.map(([b, s], i) => `      <div class="opt"><span class="ic">${i + 1}</span><div><b>${b}</b><span>${s}</span></div></div>`).join('\n')
   const dirAttr = c.dir === 'rtl' ? ' dir="rtl"' : ' dir="ltr"'
@@ -305,7 +322,7 @@ ${c.altLinks}
 
 <header class="nav"><div class="wrap">
   <a class="logo" href="${c.logoHref}"><span class="seal" aria-hidden="true">ق.م</span>${c.logoText}</a>
-  <nav aria-label="${c.navLabel}"><a class="navig" href="${IG}" rel="noopener noreferrer" aria-label="${c.igLabel}">${svg}</a>${nav}${c.langLink}</nav>
+  <nav aria-label="${c.navLabel}"><a class="navig" href="${IG}" data-cta="nav" rel="noopener noreferrer" aria-label="${c.igLabel}">${svg}</a>${nav}${c.langLink}</nav>
 </div></header>
 <div class="qprog" aria-hidden="true"><i></i></div>
 
@@ -317,7 +334,7 @@ ${c.altLinks}
     <p class="tag">${c.tag}</p>
     <p class="lead">${c.lead}</p>
     <div class="cta-row">
-      <a class="btn" href="${IG}" rel="noopener noreferrer">${svg}${c.cta}</a>
+      <a class="btn" href="${IG}" data-cta="hero" rel="noopener noreferrer">${svg}${c.cta}</a>
       <a class="btn ghost" href="#how">${c.ctaGhost}</a>
     </div>
     <div class="stores"><span class="store">${c.stores[0]}</span><span class="store">${c.stores[1]}</span></div>
@@ -339,6 +356,8 @@ ${pledges}
 </div></div>
 
 <div class="stats"><div class="wrap">${stats}</div></div>
+
+${real}
 
 <section id="how" class="how"><div class="wrap">
   <p class="kicker">${c.how.kicker}</p>
@@ -407,7 +426,7 @@ ${opts}
     <span class="price">${c.custom.price}</span>
     <p class="sub">${c.custom.sub2}</p>
     <div class="facts-row">${c.custom.facts.map((x) => `<span>${x}</span>`).join('')}</div>
-    <div class="cta-row" style="margin-top:24px"><a class="btn" href="${IG}" rel="noopener noreferrer">${svg}${c.custom.cta}</a></div>
+    <div class="cta-row" style="margin-top:24px"><a class="btn" href="${IG}" data-cta="custom" rel="noopener noreferrer">${svg}${c.custom.cta}</a></div>
   </div>
   <div class="case reveal" aria-label="${c.custom.aria}">
     <figure><img src="img/othman-photo.webp" width="720" height="960" alt="${c.custom.photoAlt}" loading="lazy"><figcaption><a href="${IG_OTHMAN}" rel="noopener noreferrer" dir="ltr">@_othman_007_</a></figcaption></figure>
@@ -433,17 +452,19 @@ ${opts}
   <p class="kicker">${c.final.kicker}</p>
   <h2>${c.final.h2}</h2>
   <p class="sub">${c.final.sub}</p>
-  <a class="bigstamp" href="${IG}" rel="noopener noreferrer">${c.final.stamp}</a>
-  <a class="handle" href="${IG}" rel="noopener noreferrer" dir="ltr">@maslaha_game</a>
+  <a class="bigstamp" href="${IG}" data-cta="play" rel="noopener noreferrer">${c.final.stamp}</a>
+  <a class="handle" href="${IG}" data-cta="play" rel="noopener noreferrer" dir="ltr">@maslaha_game</a>
 </div></section>
 </main>
 
 <footer><div class="wrap">
   <small>${c.footer.by} <a href="${IG_ADEL}" rel="noopener noreferrer">${c.footer.byName}</a></small>
-  <nav aria-label="${c.footer.navLabel}">${c.footer.links.map(([h, t]) => `<a href="${h}">${t}</a>`).join('')}<a href="${IG}" rel="noopener noreferrer">${c.footer.ig}</a></nav>
+  <nav aria-label="${c.footer.navLabel}">${c.footer.links.map(([h, t]) => `<a href="${h}">${t}</a>`).join('')}<a href="${IG}" data-cta="footer" rel="noopener noreferrer">${c.footer.ig}</a></nav>
 </div></footer>
 
 <script src="home.js" defer></script>
+<script src="stats.js" defer></script>
+<script src="analytics.js" defer></script>
 </body>
 </html>
 `
