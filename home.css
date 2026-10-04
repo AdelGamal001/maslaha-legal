@@ -218,3 +218,6 @@ footer small{color:var(--ink-soft)}
 .case .turn img{width:100%;aspect-ratio:auto;background:none}
 .case .turn span{font-weight:800;font-size:15px}
 .case figure img{filter:none}
+.case figcaption a{text-decoration:none}
+.case figcaption a:hover{text-decoration:underline}
+footer small a{color:inherit;font-weight:800}
