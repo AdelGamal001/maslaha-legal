@@ -2,6 +2,7 @@
 // game tree's node_modules (or a local one), Chrome from the usual Windows path (or CHROME_PATH).
 //   node scripts/check-site5.mjs                     run every assertion
 //   node scripts/check-site5.mjs --shots=<folder>    also write screenshots (1440x900 and 390x844, both pages)
+//   node scripts/check-site5.mjs --static            static assertions only (no browser)
 // Static part needs no browser; the live part serves the repo root on 127.0.0.1 and fails on any non-local request.
 import { createServer } from 'node:http'
 import { createRequire } from 'node:module'
@@ -9,6 +10,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync, mkdirSync } from 'node:fs'
 import { dirname, extname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { parseLegalMd, LEGAL_MD, UPDATED } from './gen-legal.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const GAME = process.env.SITE5_GAME_TREE || 'G:/Work Space/maslahtak2/worktrees/maslahtak-merge-meta'
@@ -43,12 +45,62 @@ ok(!/adel\.webp|duo\.webp|KS\.webp|shop\.webp/.test(html['index.html'] + html['e
 const imgs = ['img', 'img/est'].flatMap((d) => readdirSync(join(root, d)).filter((f) => f.endsWith('.webp')).map((f) => d + '/' + f))
 const orphans = imgs.filter((f) => !(html['index.html'] + html['en.html'] + read('home.css')).includes(f) && !f.startsWith('img/est/') || (f.startsWith('img/est/') && !html['index.html'].includes(f.slice(8, -5)) ))
 ok(orphans.length === 0, `every image in img/ is used${orphans.length ? ': ' + orphans.join(', ') : ''}`)
-// only the two redirect stubs + legal pages may differ from main; the lane must not touch them
+// SITE5 rule that still holds: nothing here may touch the domain file, the two redirect stubs or the shared legal stylesheet.
+// (The four legal page pairs are rewritten on purpose by the 0.2.4 policy publish and are pinned below instead of frozen.)
 try {
   const names = execFileSync('git', ['diff', '--name-only', 'main'], { cwd: root, encoding: 'utf8' }).split('\n').filter(Boolean)
-  const legal = names.filter((n) => /^(privacy|terms|support|account-deletion)/.test(n) || n === 'styles.css' || n === 'CNAME' || n === 'ar.html' || n === 'index-en.html')
-  ok(legal.length === 0, `git diff main touches no legal file, CNAME or redirect stub${legal.length ? ': ' + legal.join(', ') : ''}`)
+  const frozen = names.filter((n) => n === 'styles.css' || n === 'CNAME' || n === 'ar.html' || n === 'index-en.html')
+  ok(frozen.length === 0, `git diff main touches no CNAME, redirect stub or styles.css${frozen.length ? ': ' + frozen.join(', ') : ''}`)
 } catch { warn('git diff main not available') }
+
+// ---------- legal pages: the published policy and terms ----------
+console.log('legal pages')
+const LEGAL = ['privacy.html', 'privacy-en.html', 'terms.html', 'terms-en.html', 'support.html', 'support-en.html', 'account-deletion.html', 'account-deletion-en.html']
+const legalHtml = Object.fromEntries(LEGAL.map((p) => [p, read(p)]))
+const norm = (t) => t.replace(/\s+/g, ' ').trim()
+const plain = (h) => norm(h.replace(/<\/(p|h2|section|h1)>/g, ' ').replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&'))
+const sectionsOf = (t) => [...t.matchAll(/<section(?: id="([^"]*)")?>([\s\S]*?)<\/section>/g)].map(([, id, body]) => ({ id: id || '', h: plain((/<h2>([\s\S]*?)<\/h2>/.exec(body) || ['', ''])[1]), p: plain(body.replace(/<h2>[\s\S]*?<\/h2>/, '')) }))
+if (!existsSync(LEGAL_MD)) warn('legal-site.md not found at ' + LEGAL_MD + ' (set SITE5_GAME_TREE): the text pin is skipped')
+else {
+  const md = parseLegalMd(readFileSync(LEGAL_MD, 'utf8'))
+  for (const [kind, file] of [['privacy', 'privacy.html'], ['terms', 'terms.html']]) {
+    const page = sectionsOf(legalHtml[file])
+    // the one allowed addition is the «الموقع» section, unless legal-site.md already carries it
+    const siteOnly = page.filter((x) => x.id === 'site' && !md[kind].some((m) => m.h === x.h))
+    const body = page.filter((x) => !siteOnly.includes(x))
+    const same = body.length === md[kind].length && body.every((x, i) => x.h === norm(md[kind][i].h) && x.p === norm(md[kind][i].p))
+    ok(same, `${file}: ${body.length} sections equal legal-site.md word for word (headings and text, whitespace normalised)`)
+    if (!same) { const i = body.findIndex((x, k) => !md[kind][k] || x.h !== norm(md[kind][k].h) || x.p !== norm(md[kind][k].p)); console.log('    first difference at section ' + (i + 1) + ': ' + (body[i] || {}).h) }
+  }
+}
+ok(sectionsOf(legalHtml['privacy.html']).some((x) => x.id === 'site' && x.h === 'الموقع') && sectionsOf(legalHtml['privacy-en.html']).some((x) => x.id === 'site' && x.h === 'This website'), 'both privacy pages carry the «الموقع» / «This website» section (website analytics)')
+const secs = Object.fromEntries(LEGAL.map((f) => [f, sectionsOf(legalHtml[f])]))
+for (const [a, e] of [['privacy.html', 'privacy-en.html'], ['terms.html', 'terms-en.html'], ['support.html', 'support-en.html'], ['account-deletion.html', 'account-deletion-en.html']]) {
+  ok(secs[a].length === secs[e].length && secs[a].every((x, i) => x.id === secs[e][i].id), `${a} / ${e}: same number of sections and same anchors (${secs[a].length})`)
+}
+for (const f of LEGAL) {
+  const t = legalHtml[f]
+  ok(!/<script/i.test(t), `${f}: no script`)
+  ok(!/https?:\/\/(?!(www\.instagram\.com|cloud-prod\.colyseus\.io|posthog\.com|www\.revenuecat\.com)\b)/i.test(t.replace(/<a [^>]*href="https?:[^>]*>/g, '')), `${f}: no external resource, only plain links`)
+  ok(t.includes('hello@maslahagame.com'), `${f}: official email present`)
+  ok(t.includes(`datetime="${UPDATED.iso}"`) && t.includes(UPDATED[/-en\.html$/.test(f) ? 'en' : 'ar']), `${f}: updated ${UPDATED.iso}`)
+}
+ok(legalHtml['privacy.html'].includes('عادل جمال محمد عبد الله') && legalHtml['terms.html'].includes('عادل جمال محمد عبد الله'), 'privacy.html and terms.html name the data controller «عادل جمال محمد عبد الله»')
+ok(legalHtml['privacy-en.html'].includes('Adel Gamal Mohamed Abdullah') && legalHtml['terms-en.html'].includes('Adel Gamal Mohamed Abdullah'), 'the English pages name him too')
+ok(/<section id="delete">/.test(legalHtml['privacy.html']) && /<section id="delete">/.test(legalHtml['privacy-en.html']), 'privacy pages carry the #delete anchor (store answers link to privacy.html#delete)')
+ok(/امسح بياناتي/.test(legalHtml['account-deletion.html']) && /Delete my data/.test(legalHtml['account-deletion-en.html']) && /رقم جهازك/.test(legalHtml['account-deletion.html']) && /device number/i.test(legalHtml['account-deletion-en.html']), 'deletion pages: «امسح بياناتي» in Settings and the device number in the request')
+ok(!/مش بينفّذ حذف|does not currently delete/.test(legalHtml['account-deletion.html'] + legalHtml['account-deletion-en.html']), 'deletion pages no longer say the delete button does nothing')
+ok(/30 يوم/.test(legalHtml['account-deletion.html']) && /90 يوم/.test(legalHtml['account-deletion.html']) && /30 days/.test(legalHtml['account-deletion-en.html']) && /90 days/.test(legalHtml['account-deletion-en.html']), 'deletion pages state the 30-day crash logs and 90-day reports')
+{ // every internal href on the legal pages resolves, anchors included
+  let bad = 0
+  for (const f of LEGAL) for (const [, h] of legalHtml[f].matchAll(/\bhref="([^"]+)"/g)) {
+    if (/^(https:|mailto:)/.test(h)) continue
+    const [file, anchor] = h.split('#'); const target = file || f
+    if (!existsSync(join(root, target))) { bad++; console.log('    ' + f + ': missing file ' + h); continue }
+    if (anchor && !new RegExp('\\sid="' + anchor + '"').test(read(target))) { bad++; console.log('    ' + f + ': missing anchor ' + h) }
+  }
+  ok(bad === 0, 'legal pages: every internal link and anchor resolves')
+}
 
 // the two pages must have the same skeleton (tags + classes), only the words differ
 const skeleton = (t) => [...t.matchAll(/<([a-z0-9]+)((?:\s[^>]*)?)>/gi)].map(([, tag, attrs]) => {
@@ -83,6 +135,7 @@ try {
 } catch (e) { warn('game-tree facts not checked: ' + e.message) }
 
 // ---------- live checks ----------
+if (process.argv.includes('--static')) { console.log(failed ? `\n${failed} static check(s) FAILED` : '\nstatic checks passed'); process.exit(failed ? 1 : 0) }
 const req = createRequire(join(GAME, 'package.json'))
 let puppeteer
 for (const spec of [join(root, 'node_modules/puppeteer-core'), 'puppeteer-core']) { try { puppeteer = createRequire(import.meta.url)(spec); break } catch { /* next */ } }
