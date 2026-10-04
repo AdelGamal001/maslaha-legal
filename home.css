@@ -224,3 +224,17 @@ footer small a{color:inherit;font-weight:800}
 .btn.ig svg{flex:0 0 auto}
 .nav nav a.navig{display:inline-grid;place-items:center;width:42px;height:42px;padding:0;border-radius:50%}
 @media (max-width:720px){.nav nav a.navig{display:inline-grid}}
+
+/* estimation: real card art */
+.fan{height:310px}
+img.pc{width:150px;height:210px;margin-left:-75px;padding:0;background:none;border:0;border-radius:13px;box-shadow:5px 5px 0 rgba(0,0,0,.5);object-fit:cover}
+.fan .pc:nth-child(3){z-index:2}
+.fan .call{z-index:3}
+@media (max-width:420px){img.pc{width:124px;height:174px;margin-left:-62px}.fan{height:270px}}
+
+/* about the maker */
+.maker{background:var(--sky);border-block:3px solid var(--ink);overflow:hidden}
+.maker .wrap{display:grid;grid-template-columns:.8fr 1.2fr;gap:56px;align-items:center}
+@media (max-width:860px){.maker .wrap{grid-template-columns:1fr}}
+.maker .polaroid{width:min(100%,400px);transform:rotate(3deg)}
+.maker .polaroid img{aspect-ratio:1}
