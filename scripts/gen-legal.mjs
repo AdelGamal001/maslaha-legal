@@ -13,7 +13,7 @@ const GAME = process.env.SITE5_GAME_TREE || 'G:/Work Space/maslahtak2/worktrees/
 const RUN = !!process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])
 export const LEGAL_MD = resolve((RUN && process.argv[2]) || join(GAME, 'docs/release/legal-site.md'))
 
-export const UPDATED = { iso: '2026-10-05', ar: '5 أكتوبر 2026', en: '5 October 2026' }
+export const UPDATED = { iso: '2026-10-09', ar: '9 أكتوبر 2026', en: '9 October 2026' }
 const IG = 'https://www.instagram.com/maslaha_game'
 const PROVIDERS = { 'cloud-prod.colyseus.io/privacy-policy': 'https://cloud-prod.colyseus.io/privacy-policy', 'posthog.com/privacy': 'https://posthog.com/privacy', 'revenuecat.com/privacy': 'https://www.revenuecat.com/privacy' }
 
@@ -112,7 +112,7 @@ if (RUN) {
   const { privacy, terms } = parseLegalMd(readFileSync(LEGAL_MD, 'utf8'))
   if (privacy.length !== PRIVACY_EN.length || terms.length !== TERMS_EN.length) throw new Error(`legal-site.md has ${privacy.length}/${terms.length} sections, legal-en.mjs has ${PRIVACY_EN.length}/${TERMS_EN.length}: update the English text too`)
   // the Arabic privacy page = legal-site.md + the «الموقع» section (unless legal-site.md already carries it) + id="delete" on «مسح البيانات»
-  const withIds = (list) => list.map((s) => (s.h === 'مسح البيانات' ? { ...s, id: 'delete' } : s))
+  const withIds = (list) => list.map((s) => (['مسح البيانات', 'مسح الحساب'].includes(s.h) ? { ...s, id: 'delete' } : s))
   const arPrivacy = withIds(privacy); if (!arPrivacy.some((s) => s.h === SITE_AR.h)) arPrivacy.push(SITE_AR)
   const out = {
     'privacy.html': page('privacy', 'ar', arPrivacy, true),
