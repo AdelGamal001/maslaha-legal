@@ -370,7 +370,7 @@ ${c.altLinks}
 
 <header class="nav"><div class="wrap">
   <a class="logo" href="${c.logoHref}"><span class="seal" aria-hidden="true">ق.م</span>${c.logoText}</a>
-  <nav aria-label="${c.navLabel}"><a class="navig" href="${IG}" data-cta="nav" rel="noopener noreferrer" aria-label="${c.igLabel}">${svg}</a>${nav}<a class="navsup" href="#support">${c.support.nav}</a>${c.langLink}</nav>
+  <nav aria-label="${c.navLabel}"><a class="navig" href="${IG}" data-cta="nav" rel="noopener noreferrer" aria-label="${c.igLabel}">${svg}</a>${nav}${c.langLink}</nav>
 </div></header>
 <div class="qprog" aria-hidden="true"><i></i></div>
 
@@ -386,7 +386,6 @@ ${c.altLinks}
       <a class="btn ghost" href="#how">${c.ctaGhost}</a>
     </div>
     <div class="stores"><span class="store">${c.stores[0]}</span><span class="store">${c.stores[1]}</span></div>
-    <a class="supchip" href="#support">${c.support.chip}</a>
   </div>
   <div class="art">
     <div class="frame"><img src="img/race.webp" width="900" height="1200" alt="${c.heroAlt}" fetchpriority="high"></div>
@@ -407,8 +406,6 @@ ${pledges}
 <div class="stats"><div class="wrap">${stats}</div></div>
 
 ${real}
-
-${support}
 
 <section id="how" class="how"><div class="wrap">
   <p class="kicker">${c.how.kicker}</p>
@@ -506,11 +503,13 @@ ${opts}
   <a class="bigstamp" href="${IG}" data-cta="play" rel="noopener noreferrer">${c.final.stamp}</a>
   <a class="handle" href="${IG}" data-cta="play" rel="noopener noreferrer" dir="ltr">@maslaha_game</a>
 </div></section>
+
+${support}
 </main>
 
 <footer><div class="wrap">
   <small>${c.footer.by} <a href="${IG_ADEL}" rel="noopener noreferrer">${c.footer.byName}</a></small>
-  <nav aria-label="${c.footer.navLabel}">${c.footer.links.map(([h, t]) => `<a href="${h}">${t}</a>`).join('')}<a href="${IG}" data-cta="footer" rel="noopener noreferrer">${c.footer.ig}</a></nav>
+  <nav aria-label="${c.footer.navLabel}">${c.footer.links.map(([h, t]) => `<a href="${h}">${t}</a>`).join('')}<a href="#support">${c.support.nav}</a><a href="${IG}" data-cta="footer" rel="noopener noreferrer">${c.footer.ig}</a></nav>
 </div></footer>
 
 <script src="home.js?v=${ver('home.js')}" defer></script>
