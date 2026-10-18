@@ -75,7 +75,9 @@ export function parseYaml(text) {
   return doc
 }
 
-const SECRETS = ['POSTHOG_PERSONAL_API_KEY', 'IG_TOKEN']
+const SECRETS = ['POSTHOG_PERSONAL_API_KEY', 'IG_TOKEN', 'SECRETS_PAT']
+const EXPRESSIONS = [...SECRETS.map((k) => 'secrets.' + k), 'runner.temp']
+const STORE_STEP = 'Store the refreshed Instagram token'
 /** Schema sanity for the stats workflow: returns a list of problems (empty = fine). */
 export function lintWorkflow(text, root) {
   const bad = []
@@ -99,14 +101,35 @@ export function lintWorkflow(text, root) {
   if (!steps.some((s) => /^actions\/setup-node@v\d+$/.test(s.uses || ''))) bad.push('no actions/setup-node step')
   const fetchStep = steps.find((s) => /node scripts\/fetch-stats\.mjs/.test(s.run || ''))
   if (!fetchStep) bad.push('no step runs node scripts/fetch-stats.mjs')
-  else for (const k of SECRETS) if (!fetchStep.env || fetchStep.env[k] !== '${{ secrets.' + k + ' }}') bad.push(`step env ${k} must be \${{ secrets.${k} }}`)
+  else {
+    for (const k of ['POSTHOG_PERSONAL_API_KEY', 'IG_TOKEN']) if (!fetchStep.env || fetchStep.env[k] !== '${{ secrets.' + k + ' }}') bad.push(`step env ${k} must be \${{ secrets.${k} }}`)
+    if (!fetchStep.env || fetchStep.env.IG_TOKEN_OUT !== '${{ runner.temp }}/ig-token') bad.push('the fetch step needs env IG_TOKEN_OUT: ${{ runner.temp }}/ig-token (where a refreshed Instagram token is handed over)')
+  }
+  // the refreshed Instagram token must be stored right after the fetch step: PAT from the SECRETS_PAT secret, value through stdin only, the file removed on every exit
+  const storeAt = steps.findIndex((s) => s.name === STORE_STEP)
+  if (storeAt < 0) bad.push(`no step named "${STORE_STEP}"`)
+  else {
+    const store = steps[storeAt]; const run = store.run || ''
+    if (fetchStep && storeAt !== steps.indexOf(fetchStep) + 1) bad.push(`"${STORE_STEP}" must be the step right after the fetch step`)
+    if (!store.env || store.env.GH_TOKEN !== '${{ secrets.SECRETS_PAT }}') bad.push('the store step env GH_TOKEN must be ${{ secrets.SECRETS_PAT }}')
+    if (!/timeout 60 gh secret set IG_TOKEN --repo "\$GITHUB_REPOSITORY" < "\$RUNNER_TEMP\/ig-token"/.test(run)) bad.push('the store step must run: timeout 60 gh secret set IG_TOKEN --repo "$GITHUB_REPOSITORY" < "$RUNNER_TEMP/ig-token" (the value only through stdin, never hanging)')
+    if (store.if !== 'always()') bad.push('the store step must run with `if: always()` (a refreshed token is stored even when a later step fails)')
+    if (/\bexit\s+[1-9]/.test(run)) bad.push('the store step must never exit with a failure code (a failed store is a ::warning::, not a failed job)')
+    if ((text.match(/secrets\.SECRETS_PAT/g) || []).length !== 1) bad.push('secrets.SECRETS_PAT must appear exactly once in the workflow: in the store step (no other step may see the PAT)')
+    if (!/trap 'rm -f "\$RUNNER_TEMP\/ig-token"' EXIT/.test(run)) bad.push('the store step must remove the token file on every exit (trap ... EXIT)')
+    if (!/\[ -z "\$GH_TOKEN" \][\s\S]*::warning::SECRETS_PAT is not set/.test(run)) bad.push('the store step must warn when SECRETS_PAT is not set')
+    if (!/::warning::[^\n]*not stored/.test(run.slice(run.indexOf('gh secret set')))) bad.push('the store step must warn (not fail) when storing fails')
+    if (/\bset -[a-z]*x|xtrace/.test(run)) bad.push('the store step must not trace commands (set -x prints the secret path and arguments)')
+  }
   if (root && !existsSync(join(root, 'scripts/fetch-stats.mjs'))) bad.push('scripts/fetch-stats.mjs does not exist')
   for (const s of steps) if (!s.uses && !s.run) bad.push('a step has neither uses nor run: ' + (s.name || '?'))
   const commit = steps.find((s) => /git push/.test(s.run || ''))
   if (!commit || !/git add -- stats\.json/.test(commit.run)) bad.push('the commit step must add stats.json by path')
   const exprs = [...text.matchAll(/\$\{\{\s*([^}]*?)\s*\}\}/g)].map((m) => m[1])
-  for (const e of exprs) if (!SECRETS.some((k) => e === 'secrets.' + k)) bad.push('unexpected expression ${{ ' + e + ' }}')
+  for (const e of exprs) if (!EXPRESSIONS.includes(e)) bad.push('unexpected expression ${{ ' + e + ' }}')
   if (/echo[^\n]*secrets\./.test(text)) bad.push('a step echoes a secret')
+  // no line prints the PAT, the token or the token file (the ::warning:: texts name the secrets, they never expand them)
+  for (const line of text.split('\n')) if (/\b(echo|printf|cat|tee)\b[^\n]*(\$\{?(GH_TOKEN|IG_TOKEN|SECRETS_PAT)\b|ig-token)/.test(line.replace(/#.*$/, ''))) bad.push('a line prints a token or the token file: ' + line.trim().slice(0, 60))
   return bad
 }
 

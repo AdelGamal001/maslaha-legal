@@ -1,8 +1,13 @@
 # Writes stats.json for the «أرقام حقيقية» box (visitors from PostHog, followers from Instagram), every 6 hours and on demand.
-# Secrets (Settings > Secrets and variables > Actions > New repository secret):
+# Secrets (Settings > Secrets and variables > Actions > New repository secret). Three names; the values are never in the repo or in a log:
 #   POSTHOG_PERSONAL_API_KEY   a PostHog personal API key with the "Query Read" scope (project 293009, EU cloud)
-#   IG_TOKEN                   a long-lived Instagram User access token of the game's professional account (instagram_business_basic)
-# A missing secret only means that tile keeps its old value (or shows «قريب»); the job never fails because of it.
+#   IG_TOKEN                   a long-lived Instagram User access token of the game's professional account (instagram_business_basic).
+#                              It dies 60 days after its last refresh: the first run of each UTC day refreshes it, and when Instagram answers with a
+#                              new token string the step "Store the refreshed Instagram token" writes that string back into this secret.
+#   SECRETS_PAT                a fine-grained personal access token that may write that one secret: repository `maslaha-legal` only,
+#                              permission "Secrets: Read and write" (Metadata: Read-only is added by itself), expiry 1 year. The built-in
+#                              GITHUB_TOKEN can never write secrets, which is why this one exists.
+# A missing secret only means that tile keeps its old value (or shows «قريب») plus a ::warning:: line; the job never fails because of it.
 name: stats
 
 on:
@@ -30,7 +35,27 @@ jobs:
         env:
           POSTHOG_PERSONAL_API_KEY: ${{ secrets.POSTHOG_PERSONAL_API_KEY }}
           IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          IG_TOKEN_OUT: ${{ runner.temp }}/ig-token
         run: node scripts/fetch-stats.mjs
+      - name: Store the refreshed Instagram token
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.SECRETS_PAT }}
+        run: |
+          # fetch-stats.mjs writes this file only when Instagram answered with a NEW token string. The value travels through stdin: never in a command line or a log.
+          trap 'rm -f "$RUNNER_TEMP/ig-token"' EXIT
+          if [ ! -s "$RUNNER_TEMP/ig-token" ]; then
+            exit 0
+          fi
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::warning::SECRETS_PAT is not set: the refreshed Instagram token was not stored (IG_TOKEN expires after 60 days)"
+            exit 0
+          fi
+          if timeout 60 gh secret set IG_TOKEN --repo "$GITHUB_REPOSITORY" < "$RUNNER_TEMP/ig-token"; then
+            echo "Instagram token stored in the IG_TOKEN secret"
+          else
+            echo "::warning::the refreshed Instagram token was not stored: check that SECRETS_PAT is valid and may write secrets (IG_TOKEN expires after 60 days)"
+          fi
       - name: Commit stats.json if a number changed
         run: |
           if git diff --quiet -- stats.json; then

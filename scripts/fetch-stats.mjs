@@ -2,12 +2,14 @@
 //   node scripts/fetch-stats.mjs
 // Env (GitHub secrets):  POSTHOG_PERSONAL_API_KEY  (scope "Query Read", project 293009, EU cloud)
 //                        IG_TOKEN                  (long-lived Instagram User token of the game's professional account)
+//       (a file path):   IG_TOKEN_OUT              where to write a NEW token string when Instagram's refresh answers with one (mode 0600, never printed);
+//                        the next workflow step stores it in the IG_TOKEN secret with SECRETS_PAT
 // A missing secret or a failed call keeps the old number for that tile and never fails the job: the page shows «قريب» for a number that
 // was never fetched. stats.json is only rewritten when a number changed. No dependencies (Node 20+: global fetch).
 //   PostHog HogQL:  https://posthog.com/docs/api/queries   (POST /api/projects/:id/query/, Bearer personal key)
 //   Instagram:      https://developers.facebook.com/docs/instagram-platform/reference/user  (followers_count)
 //                   https://developers.facebook.com/docs/instagram-platform/reference/refresh_access_token
-import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { appendFileSync, chmodSync, existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -36,8 +38,12 @@ export function mergeStats(old, fresh, now = new Date()) {
   return { ...next, updatedAt: now.toISOString() }
 }
 
-const note = (m) => console.log(m)
-const warn = (m) => console.log(`::warning::${m}`) // a GitHub Actions annotation; on a laptop it is just a line
+// Every secret this run knows (main() registers them) is masked in anything printed: a stray `${e.message}` can never leak a token.
+const hidden = new Set()
+const hide = (v) => { if (typeof v === 'string' && v.length >= 8) hidden.add(v) } // real tokens are long; a short test value would mask ordinary words
+const mask = (m) => { for (const v of hidden) m = m.split(v).join('***'); return m }
+const note = (m) => console.log(mask(m))
+const warn = (m) => console.log(mask(`::warning::${m}`)) // a GitHub Actions annotation; on a laptop it is just a line
 
 export async function fetchVisitors(env, fetchFn = fetch) {
   if (!env.POSTHOG_PERSONAL_API_KEY) { note('POSTHOG_PERSONAL_API_KEY is not set: keeping the old visitors number'); return null }
@@ -69,8 +75,10 @@ export async function fetchFollowers(env, fetchFn = fetch) {
 }
 
 /**
- * Long-lived Instagram tokens last 60 days and can be refreshed once they are 24 hours old. Refresh on the first run of each UTC day
- * (and on a manual run), log the new expiry in the job summary. The token itself is never printed.
+ * Long-lived Instagram tokens last 60 days from the moment they are refreshed, and can be refreshed once they are 24 hours old. Refresh on the first
+ * run of each UTC day (and on a manual run) and log the new expiry in the job summary. The answer may carry the same token string or a new one: a new
+ * one is written to the file named by IG_TOKEN_OUT (the next workflow step stores it in the IG_TOKEN secret), otherwise the secret would die after 60 days.
+ * The token itself is never printed. Returns { until, days, line, rotated } or null; it never throws and never fails the job.
  */
 export async function refreshToken(env, fetchFn = fetch, now = new Date()) {
   if (!env.IG_TOKEN) return null
@@ -84,9 +92,21 @@ export async function refreshToken(env, fetchFn = fetch, now = new Date()) {
     const days = Math.round(body.expires_in / 86400)
     const line = `Instagram token refreshed: valid until ${until.toISOString().slice(0, 10)} (${days} days)`
     note(line)
-    if (body.access_token && body.access_token !== env.IG_TOKEN) warn('Instagram returned a different token string: update the IG_TOKEN secret with a fresh token')
-    if (days < 14) warn(`Instagram token expires in ${days} days: generate a new one and update the IG_TOKEN secret`)
-    return { until: until.toISOString().slice(0, 10), days, line }
+    let rotated = false
+    if (typeof body.access_token === 'string' && body.access_token !== '' && body.access_token !== env.IG_TOKEN) {
+      hide(body.access_token)
+      if (!env.IG_TOKEN_OUT) warn('Instagram returned a different token string and IG_TOKEN_OUT is not set: update the IG_TOKEN secret with a fresh token')
+      else {
+        try {
+          writeFileSync(env.IG_TOKEN_OUT, body.access_token, { mode: 0o600 })
+          chmodSync(env.IG_TOKEN_OUT, 0o600) // the mode above only counts for a file that is new
+          rotated = true
+          note('Instagram returned a new token string: written to the token file for the store step (the value is not printed)')
+        } catch (e) { warn(`the new Instagram token could not be written to the token file: ${e.code || e.message}`) }
+      }
+    }
+    if (days < 10) warn(`Instagram token expires in ${days} days: generate a new one and update the IG_TOKEN secret (see the README)`)
+    return { until: until.toISOString().slice(0, 10), days, line, rotated }
   } catch (e) {
     warn(`Instagram token not refreshed: ${e.message} (it can only be refreshed once it is 24 hours old)`)
     return null
@@ -94,6 +114,7 @@ export async function refreshToken(env, fetchFn = fetch, now = new Date()) {
 }
 
 export async function main(env = process.env, root = resolve(dirname(fileURLToPath(import.meta.url)), '..'), fetchFn = fetch, now = new Date()) {
+  hide(env.IG_TOKEN); hide(env.POSTHOG_PERSONAL_API_KEY)
   const file = join(root, 'stats.json')
   const old = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : {}
   const [visitors30d, igFollowers] = await Promise.all([fetchVisitors(env, fetchFn), fetchFollowers(env, fetchFn)])
@@ -101,7 +122,7 @@ export async function main(env = process.env, root = resolve(dirname(fileURLToPa
   const out = mergeStats(old, { visitors30d, igFollowers }, now)
   if (out) { writeFileSync(file, JSON.stringify(out, null, 2) + '\n'); note('stats.json updated') } else note('no number changed: stats.json untouched')
   if (env.GITHUB_STEP_SUMMARY) {
-    const rows = [`| visitors, 30 days | ${visitors30d ?? 'kept'} |`, `| Instagram followers | ${igFollowers ?? 'kept'} |`, `| Instagram token | ${refreshed ? `valid until ${refreshed.until} (${refreshed.days} days)` : 'not refreshed on this run'} |`]
+    const rows = [`| visitors, 30 days | ${visitors30d ?? 'kept'} |`, `| Instagram followers | ${igFollowers ?? 'kept'} |`, `| Instagram token | ${refreshed ? `valid until ${refreshed.until} (${refreshed.days} days)${refreshed.rotated ? ', a new token string was handed to the store step' : ''}` : 'not refreshed on this run'} |`]
     appendFileSync(env.GITHUB_STEP_SUMMARY, `### stats\n\n| | |\n|---|---|\n${rows.join('\n')}\n\n${out ? 'stats.json changed.' : 'stats.json unchanged.'}\n`)
   }
   return { out, visitors30d, igFollowers, refreshed }
