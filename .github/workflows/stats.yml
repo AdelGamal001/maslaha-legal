@@ -38,6 +38,7 @@ jobs:
           IG_TOKEN_OUT: ${{ runner.temp }}/ig-token
         run: node scripts/fetch-stats.mjs
       - name: Store the refreshed Instagram token
+        if: always()
         env:
           GH_TOKEN: ${{ secrets.SECRETS_PAT }}
         run: |
@@ -50,7 +51,7 @@ jobs:
             echo "::warning::SECRETS_PAT is not set: the refreshed Instagram token was not stored (IG_TOKEN expires after 60 days)"
             exit 0
           fi
-          if gh secret set IG_TOKEN --repo "$GITHUB_REPOSITORY" < "$RUNNER_TEMP/ig-token"; then
+          if timeout 60 gh secret set IG_TOKEN --repo "$GITHUB_REPOSITORY" < "$RUNNER_TEMP/ig-token"; then
             echo "Instagram token stored in the IG_TOKEN secret"
           else
             echo "::warning::the refreshed Instagram token was not stored: check that SECRETS_PAT is valid and may write secrets (IG_TOKEN expires after 60 days)"

@@ -26,6 +26,7 @@ const GAME_HOST = 'de-fra-2bb59b4f.colyseus.cloud'
 const LIVE_URL = `https://${GAME_HOST}/stats`
 const PH_KEY = 'phc_r4f8hDgcyBiZfSfhaWYjeYGigNkT4E7tvFauUAscDbrU'
 let failed = 0
+let skipped = 0 // pins that could not run on this machine (no game tree, no browser): counted, printed at the end, and a failure under CI=true
 const ok = (cond, msg) => { if (cond) console.log('  ok   ' + msg); else { failed++; console.log('  FAIL ' + msg) } }
 const warn = (msg) => console.log('  note ' + msg)
 const read = (f) => readFileSync(join(root, f), 'utf8')
@@ -154,11 +155,37 @@ for (const p of PAGES) {
   const yml = read('.github/workflows/stats.yml'); const steps = parseYaml(yml).jobs.stats.steps
   const fi = steps.findIndex((s) => /node scripts\/fetch-stats\.mjs/.test(s.run || '')); const store = steps[fi + 1] || {}
   ok(fi >= 0 && steps[fi].env.IG_TOKEN_OUT === '${{ runner.temp }}/ig-token' && store.name === 'Store the refreshed Instagram token' && store.env && store.env.GH_TOKEN === '${{ secrets.SECRETS_PAT }}', 'stats.yml: "Store the refreshed Instagram token" follows the fetch step, GH_TOKEN comes from secrets.SECRETS_PAT, IG_TOKEN_OUT is runner.temp/ig-token')
-  ok(/gh secret set IG_TOKEN --repo "\$GITHUB_REPOSITORY" < "\$RUNNER_TEMP\/ig-token"/.test(store.run || '') && !/--body|-b\s|\|\s*gh\b/.test(store.run || ''), 'stats.yml: the secret is set with `gh secret set IG_TOKEN` and the value comes from stdin ($RUNNER_TEMP/ig-token), never from an argument or a pipe')
+  ok(/timeout 60 gh secret set IG_TOKEN --repo "\$GITHUB_REPOSITORY" < "\$RUNNER_TEMP\/ig-token"/.test(store.run || '') && !/--body|-b\s|\|\s*gh\b/.test(store.run || ''), 'stats.yml: the secret is set with `timeout 60 gh secret set IG_TOKEN` and the value comes from stdin ($RUNNER_TEMP/ig-token), never from an argument or a pipe')
   // a line "prints" when a print verb starts it or follows `;` / `{`; what is checked is the part of the line from the verb on (a test like `if (!env.IG_TOKEN) { note('IG_TOKEN is not set') }` is fine)
   const printing = (text) => text.split('\n').map((l) => l.replace(/(^|\s)\/\/.*$/, '$1').replace(/^\s*[#*].*$/, '')).filter((l) => { const m = /\b(echo|printf|cat|tee|note|warn|console\.(?:log|info|warn|error))\b\s*\(?/.exec(l); return !!m && /\$\{?(GH_TOKEN|IG_TOKEN|SECRETS_PAT)\b|ig-token|\benv\.(IG_TOKEN|POSTHOG_PERSONAL_API_KEY)\b|access_token/.test(l.slice(m.index)) })
   const leaks = [...printing(yml).map((l) => 'stats.yml: ' + l.trim()), ...printing(code(read('scripts/fetch-stats.mjs'))).filter((l) => !/fetchFn\(|encodeURIComponent/.test(l)).map((l) => 'fetch-stats.mjs: ' + l.trim())]
   ok(leaks.length === 0, 'no echo / console.log line in stats.yml or fetch-stats.mjs references a token value' + (leaks.length ? ': ' + leaks.join(' | ') : ''))
+  ok(store.if === 'always()' && (yml.match(/secrets\.SECRETS_PAT/g) || []).length === 1 && !/\bexit\s+[1-9]/.test(store.run || ''), 'stats.yml: the store step runs `if: always()`, never exits with a failure code, and is the only place that sees secrets.SECRETS_PAT (exactly once in the file)')
+  // the store step run for real (bash -eo pipefail) in a temp folder: whatever happens, exit 0 and the token file is gone afterwards. PATH holds only rm, cat, timeout and, per case,
+  // a stub `gh` that records its arguments and stdin: the real GitHub CLI is never reachable and nothing is stored anywhere
+  const findTool = (n) => ['/usr/bin', '/bin', '/usr/local/bin'].map((d) => join(d, n)).find((f) => existsSync(f))
+  const bashBin = findTool('bash'); const tools = ['rm', 'cat', 'timeout'].map(findTool)
+  if (process.platform === 'win32' || !bashBin || tools.some((t) => !t)) { skipped += 6; warn('the store step is not run here (it needs bash, rm, cat and timeout on a POSIX system): its 6 behaviour pins are skipped') }
+  else {
+    const { mkdtempSync, writeFileSync: wf3, readFileSync: rf3, symlinkSync, mkdirSync: mk3, chmodSync } = await import('node:fs'); const { spawnSync } = await import('node:child_process'); const { tmpdir } = await import('node:os')
+    const base = mkdtempSync(join(tmpdir(), 'store-')); const script = join(base, 'store.sh'); wf3(script, store.run)
+    const attempt = (name, { file, pat, gh }) => {
+      const dir = mkdtempSync(join(base, name + '-')); const bin = join(dir, 'bin'); const rt = join(dir, 'rt'); mk3(bin); mk3(rt)
+      for (const t of tools) symlinkSync(t, join(bin, t.split('/').pop()))
+      if (gh) { wf3(join(bin, 'gh'), `#!/bin/sh\nprintf '%s\\n' "$*" > "${dir}/args"\ncat > "${dir}/stdin"\n${gh === 'fail' ? 'echo "stub: refused" >&2\nexit 1' : 'exit 0'}\n`); chmodSync(join(bin, 'gh'), 0o755) }
+      if (file !== undefined) wf3(join(rt, 'ig-token'), file)
+      const r = spawnSync(bashBin, ['-eo', 'pipefail', script], { env: { PATH: bin, RUNNER_TEMP: rt, GITHUB_REPOSITORY: 'owner/repo', GH_TOKEN: pat }, encoding: 'utf8', cwd: dir, timeout: 30000 })
+      const at = (f) => (existsSync(join(dir, f)) ? rf3(join(dir, f), 'utf8') : null)
+      return { rc: r.status, out: (r.stdout || '') + (r.stderr || ''), gone: !existsSync(join(rt, 'ig-token')), args: at('args') && at('args').trim(), stdin: at('stdin') }
+    }
+    const NEW = 'fake-token-new'
+    const c1 = attempt('nofile', { pat: 'fake-pat', gh: 'ok' }); ok(c1.rc === 0 && c1.gone && c1.args === null, 'store step, no token file: exit 0, `gh` is not called')
+    const c2 = attempt('empty', { file: '', pat: 'fake-pat', gh: 'ok' }); ok(c2.rc === 0 && c2.gone && c2.args === null, 'store step, empty token file: exit 0, `gh` is not called, the file is removed')
+    const c3 = attempt('nopat', { file: NEW, pat: '', gh: 'ok' }); ok(c3.rc === 0 && c3.gone && c3.args === null && /^::warning::SECRETS_PAT is not set/m.test(c3.out), 'store step, token file but no SECRETS_PAT: exit 0, a ::warning::, `gh` is not called, the file is removed')
+    const c4 = attempt('ok', { file: NEW, pat: 'fake-pat', gh: 'ok' }); ok(c4.rc === 0 && c4.gone && c4.args === 'secret set IG_TOKEN --repo owner/repo' && c4.stdin === NEW && !c4.out.includes('fake-token'), 'store step, everything fine: `gh secret set IG_TOKEN --repo owner/repo` gets the token on stdin only (not in its arguments, not in the log), exit 0, the file is removed')
+    const c5 = attempt('fail', { file: NEW, pat: 'fake-pat', gh: 'fail' }); ok(c5.rc === 0 && c5.gone && /^::warning::.*not stored/m.test(c5.out) && !c5.out.includes('fake-token'), 'store step, `gh` exits 1: still exit 0, a ::warning::, the file is removed')
+    const c6 = attempt('nogh', { file: NEW, pat: 'fake-pat' }); ok(c6.rc === 0 && c6.gone && /^::warning::.*not stored/m.test(c6.out), 'store step, `gh` is not on PATH: still exit 0, a ::warning::, the file is removed')
+  }
 }
 for (const f of ['img/adel.webp', 'img/duo.webp', 'img/est/KS.webp', 'img/shop.webp']) ok(!existsSync(join(root, f)), `${f} is gone`)
 ok(!/adel\.webp|duo\.webp|KS\.webp|shop\.webp/.test(html['index.html'] + html['en.html'] + read('home.css')), 'no reference to the removed images')

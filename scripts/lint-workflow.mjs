@@ -112,7 +112,10 @@ export function lintWorkflow(text, root) {
     const store = steps[storeAt]; const run = store.run || ''
     if (fetchStep && storeAt !== steps.indexOf(fetchStep) + 1) bad.push(`"${STORE_STEP}" must be the step right after the fetch step`)
     if (!store.env || store.env.GH_TOKEN !== '${{ secrets.SECRETS_PAT }}') bad.push('the store step env GH_TOKEN must be ${{ secrets.SECRETS_PAT }}')
-    if (!/gh secret set IG_TOKEN --repo "\$GITHUB_REPOSITORY" < "\$RUNNER_TEMP\/ig-token"/.test(run)) bad.push('the store step must run: gh secret set IG_TOKEN --repo "$GITHUB_REPOSITORY" < "$RUNNER_TEMP/ig-token" (the value only through stdin)')
+    if (!/timeout 60 gh secret set IG_TOKEN --repo "\$GITHUB_REPOSITORY" < "\$RUNNER_TEMP\/ig-token"/.test(run)) bad.push('the store step must run: timeout 60 gh secret set IG_TOKEN --repo "$GITHUB_REPOSITORY" < "$RUNNER_TEMP/ig-token" (the value only through stdin, never hanging)')
+    if (store.if !== 'always()') bad.push('the store step must run with `if: always()` (a refreshed token is stored even when a later step fails)')
+    if (/\bexit\s+[1-9]/.test(run)) bad.push('the store step must never exit with a failure code (a failed store is a ::warning::, not a failed job)')
+    if ((text.match(/secrets\.SECRETS_PAT/g) || []).length !== 1) bad.push('secrets.SECRETS_PAT must appear exactly once in the workflow: in the store step (no other step may see the PAT)')
     if (!/trap 'rm -f "\$RUNNER_TEMP\/ig-token"' EXIT/.test(run)) bad.push('the store step must remove the token file on every exit (trap ... EXIT)')
     if (!/\[ -z "\$GH_TOKEN" \][\s\S]*::warning::SECRETS_PAT is not set/.test(run)) bad.push('the store step must warn when SECRETS_PAT is not set')
     if (!/::warning::[^\n]*not stored/.test(run.slice(run.indexOf('gh secret set')))) bad.push('the store step must warn (not fail) when storing fails')
