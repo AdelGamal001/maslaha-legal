@@ -389,9 +389,12 @@ async function open(page, url, w, h, reduce, fx = {}) {
   return { bad, errors, notFound, hosts, urls }
 }
 async function scrollAll(page) {
-  const h = await page.evaluate(() => document.documentElement.scrollHeight)
-  for (let y = 0; y < h; y += 320) { await page.evaluate((yy) => scrollTo(0, yy), y); await sleep(70) }
-  await sleep(500)
+  // wait for two painted frames after every step: the reveals and the ink line are IntersectionObservers, and a slow machine that skips frames skips markers.
+  // The page height is read again at every step (lazy images below the fold grow the page while it is scrolled), and the last step is the very bottom.
+  const height = () => page.evaluate(() => document.documentElement.scrollHeight)
+  const to = (yy) => page.evaluate((y) => { scrollTo({ top: y, behavior: 'instant' }); return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))) }, yy) // home.css has scroll-behavior: smooth: a smooth scroll never catches up with steps this fast
+  for (let y = 0; y < await height(); y += 240) { await to(y); await sleep(40) }
+  await to(await height()); await sleep(600)
 }
 
 for (const p of PAGES) {
