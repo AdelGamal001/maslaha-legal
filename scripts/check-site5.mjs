@@ -258,7 +258,25 @@ for (const f of LEGAL) {
 ok(legalHtml['privacy.html'].includes('عادل جمال محمد عبد الله') && legalHtml['terms.html'].includes('عادل جمال محمد عبد الله'), 'privacy.html and terms.html name the data controller «عادل جمال محمد عبد الله»')
 ok(legalHtml['privacy-en.html'].includes('Adel Gamal Mohamed Abdullah') && legalHtml['terms-en.html'].includes('Adel Gamal Mohamed Abdullah'), 'the English pages name him too')
 ok(/<section id="delete">/.test(legalHtml['privacy.html']) && /<section id="delete">/.test(legalHtml['privacy-en.html']), 'privacy pages carry the #delete anchor (store answers link to privacy.html#delete)')
-ok(/امسح بياناتي/.test(legalHtml['account-deletion.html']) && /Delete my data/.test(legalHtml['account-deletion-en.html']) && /رقم جهازك/.test(legalHtml['account-deletion.html']) && /device number/i.test(legalHtml['account-deletion-en.html']), 'deletion pages: «امسح بياناتي» in Settings and the device number in the request')
+{ // SITE-2 · D: the delete step stands on its own: the real path in the app, quoted; no guide (it is hidden in the game); the backup line; the support pages agree
+  const dAr = legalHtml['account-deletion.html']; const dEn = legalHtml['account-deletion-en.html']; const both = dAr + dEn
+  const inOrder = (t, words) => words.every((w, i) => t.indexOf(w) > (i ? t.indexOf(words[i - 1]) : -1))
+  ok(['الإعدادات', 'الحساب', 'امسح حسابي', 'مفيش رجوع', 'استرجاع المشتريات'].every((w) => dAr.includes(w) && dEn.includes(w)), 'deletion pages (both languages) name «الإعدادات», «الحساب», «امسح حسابي», the sheet text «مفيش رجوع» and «استرجاع المشتريات»')
+  ok(inOrder(dAr, ['الخطوة الأولى', 'الخطوة التانية', 'الخطوة التالتة', 'الخطوة الرابعة']) && inOrder(dEn, ['Step one', 'Step two', 'Step three', 'Step four']), 'deletion pages: the four steps are numbered in words, in order (settings, account, «امسح حسابي», confirm)')
+  ok(!/الدليل|\bguides?\b|عندك سؤال|امسح أرقام دليل/i.test(both), 'deletion pages do not send anyone to the guide «الدليل» (it is hidden in the game)')
+  ok(!/امسح بياناتي|Delete my data|قبل 0\.2\.6|before 0\.2\.6|older versions/i.test(both), 'deletion pages: no «امسح بياناتي» and no line about builds before 0.2.6')
+  ok(/رقم جهازك/.test(dAr) && /device number/i.test(dEn) && /id="request"/.test(dAr) && /id="request"/.test(dEn), 'deletion pages: the device-number request flow (#request) is still there')
+  ok(/<a href="privacy\.html#backup">النسخ الاحتياطية<\/a> بتفضل لحد 30 يوم بعد المسح/.test(dAr) && /<a href="privacy-en\.html#backup">backups<\/a> for up to 30 days after deletion/.test(dEn), 'deletion pages carry the backup line: the encrypted copy stays up to 30 days after deletion (links to #backup)')
+  ok(/امسح حسابي/.test(legalHtml['support.html']) && /Delete my account/.test(legalHtml['support-en.html']) && !/امسح بياناتي|Delete my data/.test(legalHtml['support.html'] + legalHtml['support-en.html']), 'support pages say «امسح حسابي» / “Delete my account” (not «امسح بياناتي»)')
+  ok(!/إجراء|موظف بمزاج/.test(dAr + dEn + legalHtml['support.html'] + legalHtml['support-en.html'] + SITE_SECTIONS.map((s) => s.ar.p + s.ar.h).join(' ')), 'no «إجراء» or «موظف بمزاج» on the deletion and support pages or in the site-only sections (the landing page and the game\'s own legal text are not touched here)')
+  if (pin) { // the quoted words are the words the app shows at the pinned commit
+    const settings = pin.copy.slice(pin.copy.indexOf('\n  settings: {')) // TEXT.settings: the first `title:` and the delete* keys below it
+    const str = (k) => { const m = new RegExp('\\n    ' + k + ": '([^']*)'").exec(settings); return m ? m[1] : null }
+    const [title, account, del, sheet, detail, yes, restore] = [str('title'), str('account'), str('delete'), str('deleteConfirm'), str('deleteDetail'), str('deleteYes'), str('restore')]
+    ok(title === 'الإعدادات' && account === 'الحساب' && del === 'امسح حسابي' && yes === 'امسح حسابي' && dAr.includes(sheet) && dAr.includes(detail) && dEn.includes(sheet) && dEn.includes(detail) && /«استرجاع المشتريات»/.test(detail), `the deletion pages quote the app at ${GAME_SHA_SHORT}: Settings «${title}» › «${account}» › «${del}», the sheet «${sheet}» and «${detail}»`)
+    ok(/\bcodex: false\b/.test(pin.at('src/game/features.js')) && /^\s*restore: 'استرجاع المشتريات'/m.test(pin.copy) && /id: 'account', label: t\.account/.test(pin.at('src/screens/Settings.jsx')), 'game facts behind the pages: features.codex is false (the guide is hidden), the shop button is «استرجاع المشتريات», Settings has an «الحساب» tab')
+  }
+}
 ok(!/مش بينفّذ حذف|does not currently delete/.test(legalHtml['account-deletion.html'] + legalHtml['account-deletion-en.html']), 'deletion pages no longer say the delete button does nothing')
 ok(/30 يوم/.test(legalHtml['account-deletion.html']) && /90 يوم/.test(legalHtml['account-deletion.html']) && /30 days/.test(legalHtml['account-deletion-en.html']) && /90 days/.test(legalHtml['account-deletion-en.html']), 'deletion pages state the 30-day crash logs and 90-day reports')
 { // every internal href on the legal pages resolves, anchors included
