@@ -18,7 +18,7 @@ const RUN = !!process.argv[1] && SELF === resolve(process.argv[1])
 
 // The maslahtak commit the published text is taken from. To re-pin: change this line, run `node scripts/gen-legal.mjs`, commit the four pages
 // (or run `node scripts/gen-legal.mjs --pin <sha>`, which does the first two steps).
-export const GAME_SHA = '9707294c70ade532152cf697c58f65ab8aa29fdc'
+export const GAME_SHA = '26cfbf42619c1e5de4c3ce2fb7dcc8cb28ba89c7'
 export const GAME_SHA_SHORT = GAME_SHA.slice(0, 9)
 export const GAME_TREE = process.env.SITE5_GAME_TREE || 'G:/Work Space/maslahtak2/worktrees/maslahtak-merge-meta'
 export const LEGAL_MD_PATH = 'docs/release/legal-site.md'
