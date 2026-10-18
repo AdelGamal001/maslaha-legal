@@ -51,6 +51,20 @@ const L = {
       ['عادلة', 'مفيش ادفع عشان تكسب', 'الفلوس مش بتشتري الفوز. الشخصيات متوازنة، والمهارة والحظ بيحسموا.'],
     ],
     stats: [[58, 'ميني جيم'], [0, 'إعلانات'], [20, 'شخصية بقدرتها'], [8, 'لاعبين في الأوضة']],
+    support: {
+      nav: 'ادعمنا', chip: 'ادعم القعدة بأي مبلغ · وخد 3 أضعاف اللحلوح',
+      kicker: 'ادعم القعدة', h2: 'ادعم اللعبة بأي مبلغ',
+      sub: 'قعدة مصلحة لعبة مستقلة، من غير إعلانات. دعمك بيغطي السيرفرات ورسوم المتاجر، وبيخلّينا نكمّل.',
+      steps: [
+        ['حوّل أي مبلغ', 'على إنستاباي من الكود أو العنوان.'],
+        ['ابعتلنا صورة التحويل', 'في رسالة على إنستجرام <a href="https://www.instagram.com/maslaha_game/" rel="noopener noreferrer" dir="ltr">@maslaha_game</a>.'],
+        ['اربط إنستجرامك في اللعبة', 'من «حسابي»، وهديتك هتوصلك لوحدها.'],
+      ],
+      giftB: 'هدية الداعم', gift: '3 أضعاف اللحلوح اللي نفس المبلغ بيجيبه جوه اللعبة.',
+      note: 'ربط إنستجرام نازل في التحديث الجاي، والهدية مستنياك لحد ما تربط. الدعم اختياري ومش شراء. حوّلت بالغلط؟ ابعتلنا ونرجّعهولك.',
+      qrAlt: 'كود إنستاباي للتحويل لـ adelgamal1@instapay', copy: 'انسخ العنوان', copied: 'اتنسخ ✓',
+      abroad: 'من برّه مصر؟ ابعتلنا رسالة على إنستجرام ونتفق على طريقة.',
+    },
     real: { kicker: 'من غير تجميل', h2: 'أرقام حقيقية', sub: 'بتتحدّث لوحدها كل كام ساعة.', aria: 'أرقام الموقع واللعبة',
       tiles: [['visitors', 'زوار الموقع', 'آخر 30 يوم'], ['ig', 'متابعين إنستجرام', 'صفحة اللعبة'], ['live', 'بيلعبوا دلوقتي', 'في أوض أونلاين']],
       soon: 'قريب', none: '—', updated: 'آخر تحديث:', months: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'] },
@@ -171,6 +185,20 @@ const L = {
       ['FAIR', 'No pay-to-win', 'Money doesn’t buy the win. Characters are balanced; skill and luck decide.'],
     ],
     stats: [[58, 'mini-games'], [0, 'ads'], [20, 'characters'], [8, 'players per room']],
+    support: {
+      nav: 'Donate', chip: 'Support the game with any amount · get 3× the lahloh',
+      kicker: 'Support the game', h2: 'Back the game with any amount',
+      sub: 'Qaadet Maslaha is an independent game with no ads. Your support pays for the servers and store fees, and keeps us going.',
+      steps: [
+        ['Send any amount', 'By InstaPay, from the code or the address.'],
+        ['Send us the receipt', 'As an Instagram message to <a href="https://www.instagram.com/maslaha_game/" rel="noopener noreferrer" dir="ltr">@maslaha_game</a>.'],
+        ['Link Instagram in the game', 'From «My account». Your gift arrives on its own.'],
+      ],
+      giftB: 'Supporter gift', gift: '3× the lahloh the same amount buys inside the game.',
+      note: 'Instagram linking comes in the next update, and your gift waits until you link. Support is voluntary, not a purchase. Sent by mistake? Message us and we will send it back.',
+      qrAlt: 'InstaPay code for adelgamal1@instapay', copy: 'Copy address', copied: 'Copied ✓',
+      abroad: 'Outside Egypt? Message us on Instagram and we will sort out a way.',
+    },
     real: { kicker: 'No spin', h2: 'Real numbers', sub: 'Refreshed automatically every few hours.', aria: 'Site and game numbers',
       tiles: [['visitors', 'Site visitors', 'last 30 days'], ['ig', 'Instagram followers', 'the game page'], ['live', 'Playing right now', 'in online rooms']],
       soon: 'Soon', none: '—', updated: 'Last updated:', months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] },
@@ -297,6 +325,23 @@ function page(c) {
     <p class="upd" hidden></p>
   </div>
 </div></section>`
+  const sp = c.support
+  const support = `<section id="support" class="support"><div class="wrap">
+  <div class="reveal">
+    <p class="kicker">${sp.kicker}</p>
+    <h2>${sp.h2}</h2>
+    <p class="sub">${sp.sub}</p>
+    <ol class="sup-steps">${sp.steps.map(([b, t], i) => `<li><span class="no">${i + 1}</span><div><b>${b}</b><span>${t}</span></div></li>`).join('')}</ol>
+    <div class="gift"><b>${sp.giftB}</b><span>${sp.gift}</span></div>
+    <p class="sup-note">${sp.note}</p>
+  </div>
+  <div class="qrcard reveal">
+    <img src="img/instapay-qr.webp" width="392" height="392" alt="${sp.qrAlt}" loading="lazy">
+    <code class="ipa" dir="ltr">adelgamal1@instapay</code>
+    <button class="btn copyipa" type="button" data-copied="${sp.copied}">${sp.copy}</button>
+    <small>${sp.abroad}</small>
+  </div>
+</div></section>`
   const nav = c.nav.map(([h, t]) => `<a href="${h}">${t}</a>`).join('')
   const opts = c.chars.opts.map(([b, s], i) => `      <div class="opt"><span class="ic">${i + 1}</span><div><b>${b}</b><span>${s}</span></div></div>`).join('\n')
   const dirAttr = c.dir === 'rtl' ? ' dir="rtl"' : ' dir="ltr"'
@@ -322,7 +367,7 @@ ${c.altLinks}
 
 <header class="nav"><div class="wrap">
   <a class="logo" href="${c.logoHref}"><span class="seal" aria-hidden="true">ق.م</span>${c.logoText}</a>
-  <nav aria-label="${c.navLabel}"><a class="navig" href="${IG}" data-cta="nav" rel="noopener noreferrer" aria-label="${c.igLabel}">${svg}</a>${nav}${c.langLink}</nav>
+  <nav aria-label="${c.navLabel}"><a class="navig" href="${IG}" data-cta="nav" rel="noopener noreferrer" aria-label="${c.igLabel}">${svg}</a>${nav}<a class="navsup" href="#support">${c.support.nav}</a>${c.langLink}</nav>
 </div></header>
 <div class="qprog" aria-hidden="true"><i></i></div>
 
@@ -338,6 +383,7 @@ ${c.altLinks}
       <a class="btn ghost" href="#how">${c.ctaGhost}</a>
     </div>
     <div class="stores"><span class="store">${c.stores[0]}</span><span class="store">${c.stores[1]}</span></div>
+    <a class="supchip" href="#support">${c.support.chip}</a>
   </div>
   <div class="art">
     <div class="frame"><img src="img/race.webp" width="900" height="1200" alt="${c.heroAlt}" fetchpriority="high"></div>
@@ -358,6 +404,8 @@ ${pledges}
 <div class="stats"><div class="wrap">${stats}</div></div>
 
 ${real}
+
+${support}
 
 <section id="how" class="how"><div class="wrap">
   <p class="kicker">${c.how.kicker}</p>

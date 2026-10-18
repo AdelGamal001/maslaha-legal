@@ -59,3 +59,9 @@ const upd=()=>{tick=0;const h=d.documentElement,y=h.scrollTop;
   if(art&&!rm&&y<innerHeight)art.style.setProperty('--py',Math.min(12,y*.04).toFixed(1)+'px')};
 addEventListener('scroll',()=>{tick||(tick=requestAnimationFrame(upd))},{passive:true});upd();
 })();
+
+/* copy the InstaPay address (clipboard may refuse: then select the text) */
+(()=>{const b=document.querySelector('.copyipa'),c=document.querySelector('.ipa');if(!b||!c)return;const t=b.textContent;
+b.addEventListener('click',()=>{const done=()=>{b.textContent=b.dataset.copied;setTimeout(()=>{b.textContent=t},1800)};
+const sel=()=>{const r=document.createRange();r.selectNodeContents(c);const s=getSelection();s.removeAllRanges();s.addRange(r)};
+(navigator.clipboard?navigator.clipboard.writeText(c.textContent.trim()):Promise.reject()).then(done,sel)})})();
