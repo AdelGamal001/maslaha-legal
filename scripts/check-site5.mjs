@@ -10,10 +10,11 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync, mkdirSync } from 'node:fs'
 import { dirname, extname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { parseLegalMd, LEGAL_MD, UPDATED } from './gen-legal.mjs'
+import { parseLegalMd, UPDATED, GAME_SHA, GAME_SHA_SHORT, GAME_TREE, LEGAL_MD_PATH, COPY_PATH, treeKind, hasCommit, gameFile, crossCheckCopy, generate } from './gen-legal.mjs'
+import { SITE_SECTIONS, PRIVACY_EN, TERMS_EN } from './legal-en.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const GAME = process.env.SITE5_GAME_TREE || 'G:/Work Space/maslahtak2/worktrees/maslahtak-merge-meta'
+const GAME = GAME_TREE
 const shotsArg = process.argv.find((a) => a.startsWith('--shots='))
 const shotsDir = shotsArg ? resolve(shotsArg.slice(8)) : null
 const dprArg = process.argv.find((a) => a.startsWith('--dpr='))
@@ -179,20 +180,69 @@ const legalHtml = Object.fromEntries(LEGAL.map((p) => [p, read(p)]))
 const norm = (t) => t.replace(/\s+/g, ' ').trim()
 const plain = (h) => norm(h.replace(/<\/(p|h2|section|h1)>/g, ' ').replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&'))
 const sectionsOf = (t) => [...t.matchAll(/<section(?: id="([^"]*)")?>([\s\S]*?)<\/section>/g)].map(([, id, body]) => ({ id: id || '', h: plain((/<h2>([\s\S]*?)<\/h2>/.exec(body) || ['', ''])[1]), p: plain(body.replace(/<h2>[\s\S]*?<\/h2>/, '')) }))
-if (!existsSync(LEGAL_MD)) warn('legal-site.md not found at ' + LEGAL_MD + ' (set SITE5_GAME_TREE): the text pin is skipped')
-else {
-  const md = parseLegalMd(readFileSync(LEGAL_MD, 'utf8'))
+// SITE-2 · B: the Arabic text comes from ONE pinned game commit (GAME_SHA in gen-legal.mjs), read with `git show` and never from a working tree
+const SITE_AR_LIST = ['site:الموقع', 'backup:النسخة الاحتياطية', 'rooms:الإدارة بتشوف الأوض', 'support-dm:لو دعمت القعدة']
+const SITE_EN_LIST = ['site:This website', 'backup:Backups', 'rooms:Admin sees the rooms', 'support-dm:If you support us']
+const footerOf = (t) => (/<footer>([\s\S]*?)<\/footer>/.exec(t) || ['', ''])[1]
+ok(/^[0-9a-f]{40}$/.test(GAME_SHA) && GAME_SHA_SHORT === GAME_SHA.slice(0, 9), `gen-legal.mjs pins one game commit: ${GAME_SHA} (short ${GAME_SHA_SHORT})`)
+for (const f of ['privacy.html', 'terms.html', 'privacy-en.html', 'terms-en.html']) {
+  const label = /-en\.html$/.test(f) ? 'Text version:' : 'نسخة النص:'; const foot = footerOf(legalHtml[f])
+  const m = new RegExp(`<p class="src">${label} <bdi dir="ltr">([0-9a-f]+)</bdi></p>`).exec(foot)
+  ok(!!m && m[1] === GAME_SHA_SHORT && GAME_SHA.startsWith(m[1]) && plain(foot).endsWith(`${label} ${GAME_SHA_SHORT}`), `${f}: the footer says «${label} ${GAME_SHA_SHORT}» and that sha is the pinned GAME_SHA`)
+}
+const treeKindNow = treeKind(GAME)
+let pin = null
+if (treeKindNow === 'none') warn(`${GAME} is not a git checkout of the game repo (set SITE5_GAME_TREE): the pins that read the game at ${GAME_SHA_SHORT} are skipped`)
+else if (!hasCommit(GAME_SHA, GAME)) ok(false, `the game tree ${GAME} does not contain the pinned commit ${GAME_SHA_SHORT}: run \`git fetch origin merge/0.2.8\` there (or point SITE5_GAME_TREE at a tree that has it)`)
+else { const mdText = gameFile(LEGAL_MD_PATH); pin = { mdText, md: parseLegalMd(mdText), copy: gameFile(COPY_PATH), at: (p) => gameFile(p) } }
+const enBody = (s) => norm(s.p.replace(/\[\[|\]\]/g, ''))
+if (pin) {
   for (const [kind, file] of [['privacy', 'privacy.html'], ['terms', 'terms.html']]) {
-    const page = sectionsOf(legalHtml[file])
-    // the one allowed addition is the «الموقع» section, unless legal-site.md already carries it
-    const siteOnly = page.filter((x) => x.id === 'site' && !md[kind].some((m) => m.h === x.h))
-    const body = page.filter((x) => !siteOnly.includes(x))
-    const same = body.length === md[kind].length && body.every((x, i) => x.h === norm(md[kind][i].h) && x.p === norm(md[kind][i].p))
-    ok(same, `${file}: ${body.length} sections equal legal-site.md word for word (headings and text, whitespace normalised)`)
-    if (!same) { const i = body.findIndex((x, k) => !md[kind][k] || x.h !== norm(md[kind][k].h) || x.p !== norm(md[kind][k].p)); console.log('    first difference at section ' + (i + 1) + ': ' + (body[i] || {}).h) }
+    const page = sectionsOf(legalHtml[file]); const n = pin.md[kind].length; const body = page.slice(0, n)
+    const same = body.length === n && body.every((x, i) => x.h === norm(pin.md[kind][i].h) && x.p === norm(pin.md[kind][i].p))
+    ok(same, `${file}: ${n} sections equal legal-site.md at ${GAME_SHA_SHORT} word for word (headings and text, whitespace normalised)`)
+    if (!same) { const i = body.findIndex((x, k) => !pin.md[kind][k] || x.h !== norm(pin.md[kind][k].h) || x.p !== norm(pin.md[kind][k].p)); console.log('    first difference at section ' + (i + 1) + ': ' + (body[i] || {}).h) }
+    const allow = kind === 'privacy' ? SITE_SECTIONS : []; const rest = page.slice(n)
+    ok(rest.length === allow.length && rest.every((x, i) => x.id === allow[i].id && x.h === norm(allow[i].ar.h) && x.p === norm(allow[i].ar.p)), `${file}: after the game text only the site-only sections follow (${allow.map((s) => s.id).join(', ') || 'none'}), in this order and word for word: the allow-list is SITE_SECTIONS in legal-en.mjs`)
+  }
+  const gen = generate(true)
+  for (const f of Object.keys(gen)) ok(gen[f] === read(f), `${f} is exactly what gen-legal.mjs produces at ${GAME_SHA_SHORT} (nothing edited by hand, nothing stale)`)
+  const cc = crossCheckCopy(pin.mdText, pin.md, pin.copy)
+  ok(cc.bad.length === 0, `legal-site.md and src/game/copy.js agree at ${GAME_SHA_SHORT}: the date, ${pin.md.privacy.length} privacy and ${pin.md.terms.length} terms sections, every in-app paragraph found in legal-site.md` + (cc.bad.length ? ': ' + cc.bad.join('; ') : ''))
+  for (const e of cc.extra) warn('legal-site.md says more than the in-app text: ' + e)
+}
+{ // the English pages: PRIVACY_EN / TERMS_EN, then the same site-only sections; the section counts follow the pinned Arabic text
+  const pe = sectionsOf(legalHtml['privacy-en.html']); const te = sectionsOf(legalHtml['terms-en.html'])
+  const n = PRIVACY_EN.length; const rest = pe.slice(n)
+  ok(pe.slice(0, n).every((x, i) => x.h === norm(PRIVACY_EN[i].h) && x.p === enBody(PRIVACY_EN[i])) && rest.length === SITE_SECTIONS.length && rest.every((x, i) => x.id === SITE_SECTIONS[i].id && x.h === norm(SITE_SECTIONS[i].en.h) && x.p === enBody(SITE_SECTIONS[i].en)), `privacy-en.html: ${n} sections of PRIVACY_EN, then the site-only sections of SITE_SECTIONS, word for word`)
+  ok(te.length === TERMS_EN.length && te.every((x, i) => x.h === norm(TERMS_EN[i].h) && x.p === enBody(TERMS_EN[i])), `terms-en.html: ${te.length} sections of TERMS_EN, word for word`)
+  if (pin) ok(n === pin.md.privacy.length && te.length === pin.md.terms.length, `the English pages have as many sections as legal-site.md at ${GAME_SHA_SHORT} (${pin.md.privacy.length} privacy, ${pin.md.terms.length} terms)`)
+}
+// SITE-2 · C: the site-only sections, in this order, at the end of both privacy pages
+for (const [f, list] of [['privacy.html', SITE_AR_LIST], ['privacy-en.html', SITE_EN_LIST]]) {
+  const tail = sectionsOf(legalHtml[f]).slice(-list.length)
+  ok(tail.map((x) => x.id + ':' + x.h).join('|') === list.join('|'), `${f}: the last four sections are ${list.map((x) => '«' + x.split(':')[1] + '»').join(', ')} (ids site, backup, rooms, support-dm), after the game text`)
+  ok(tail.every((x) => x.h.split(/\s+/).length <= 4), `${f}: the site-only headings are 4 words or fewer`)
+}
+{
+  const sec = (f, id) => (sectionsOf(legalHtml[f]).find((x) => x.id === id) || { p: '' }).p
+  const [bAr, bEn, rAr, rEn, dAr, dEn] = [sec('privacy.html', 'backup'), sec('privacy-en.html', 'backup'), sec('privacy.html', 'rooms'), sec('privacy-en.html', 'rooms'), sec('privacy.html', 'support-dm'), sec('privacy-en.html', 'support-dm')]
+  ok(/30 يوم/.test(bAr) && /30 days/.test(bEn) && /AES-256/.test(bAr + bEn) && /GitHub/.test(bAr) && /GitHub/.test(bEn) && /3:10/.test(bAr) && /3:10/.test(bEn), 'backup section (both languages): nightly 3:10 Cairo time, AES-256, a private GitHub repository, the newest 30 days')
+  ok(/docs\.github\.com\/site-policy\/privacy-policies\/github-general-privacy-statement/.test(bAr) && /docs\.github\.com\/site-policy\/privacy-policies\/github-general-privacy-statement/.test(bEn) && /مزوّد رابع/.test(bAr) && /fourth provider/.test(bEn), 'backup section: GitHub is named as the fourth provider, with its privacy statement')
+  ok(/ممكن تفضل في مخزن النسخ لحد 30 يوم/.test(bAr) && /can stay in the backup store for up to 30 days/.test(bEn) && /تاريخ المخزن/.test(bAr) && /repository’s history/.test(bEn), 'backup section: after deleting an account its encrypted copy can stay up to 30 days, and an older encrypted file may stay in the repository history until it is cleaned (both languages)')
+  ok(/ولازم يكتب السبب/.test(rAr) && /وعدد اللاعيبة والسبب/.test(rAr) && /must type a reason/.test(rEn) && /number of players and the reason/.test(rEn) && /12 حرف/.test(rAr) && /12 characters/.test(rEn) && /5 ثواني/.test(rAr) && /5 seconds/.test(rEn) && /مابتتخزّنش/.test(rAr) && /not stored/.test(rEn), 'rooms section (both languages): a reason must be typed and is logged, the first 12 characters of a player number, refreshed every 5 seconds, the view is not stored')
+  ok(/مدير المصلحة/.test(rAr) && /مدير المصلحة/.test(rEn) && /سنة/.test(rAr) && /one year/.test(rEn) && /الإساءة/.test(rAr) && /abuse/.test(rEn), 'rooms section: the owner can join a room as «مدير المصلحة», the log is kept one year, the purpose is to stop abuse')
+  ok(/90 يوم/.test(dAr) && /90 days/.test(dEn) && /maslaha_game/.test(dAr) && /maslaha_game/.test(dEn) && /privacycenter\.instagram\.com\/policy/.test(dAr) && /privacycenter\.instagram\.com\/policy/.test(dEn) && !/paypal|بايبال/i.test(dAr + dEn), 'support-dm section (both languages): the Instagram message is deleted after the gift or after 90 days at most, Instagram\'s own policy is linked, no PayPal')
+  if (pin) { // what the site says about the server is what the server code at the pinned commit does
+    const got = (path, re) => { try { return re.exec(pin.at(path)) } catch { return null } }
+    const keep = got('server/src/backup/run.ts', /^\s*keep:.*: (\d+),\s*$/m); const at = got('server/src/config.ts', /at: \(process\.env\.BACKUP_AT \|\| '(\d\d:\d\d)'\)/)
+    const poll = got('server/admin-web/js/tabs/rooms.js', /setInterval\(\(\) => load\(false\), (\d+)\)/); const slice = got('server/src/admin/routes/rooms.ts', /player: p\.playerId\.slice\(0, (\d+)\)/); const aud = got('server/src/admin/audit.ts', /AUDIT_KEEP_MS = (\d+) \* 86_400_000/)
+    ok(!!keep && +keep[1] === 30 && /30 يوم/.test(bAr) && /30 days/.test(bEn), `backup keep: BACKUP_KEEP defaults to ${keep ? keep[1] : '?'} in server/src/backup/run.ts at ${GAME_SHA_SHORT}, the pages say 30 يوم / 30 days`)
+    ok(!!at && /3:10/.test(bAr) && at[1].replace(/^0/, '') === '3:10', `backup time: BACKUP_AT defaults to ${at ? at[1] : '?'} (Cairo) in server/src/config.ts, the pages say 3:10`)
+    ok(/aes-256-gcm/i.test(pin.at('server/src/backup/crypt.ts')) && /maslaha-backups/.test(pin.at('server/src/backup/run.ts')), 'backup: crypt.ts is AES-256-GCM and run.ts defaults to a repository named maslaha-backups (private per docs/backend/backup.md)')
+    ok(!!poll && +poll[1] === 5000 && !!slice && +slice[1] === 12 && !!aud && +aud[1] === 365, `rooms: the dashboard polls every ${poll ? poll[1] : '?'} ms, a removal logs the first ${slice ? slice[1] : '?'} characters of the player id, the audit is kept ${aud ? aud[1] : '?'} days: the pages say 5 seconds, 12 characters, one year`)
   }
 }
-ok(sectionsOf(legalHtml['privacy.html']).some((x) => x.id === 'site' && x.h === 'الموقع') && sectionsOf(legalHtml['privacy-en.html']).some((x) => x.id === 'site' && x.h === 'This website'), 'both privacy pages carry the «الموقع» / «This website» section (website analytics)')
 const secs = Object.fromEntries(LEGAL.map((f) => [f, sectionsOf(legalHtml[f])]))
 for (const [a, e] of [['privacy.html', 'privacy-en.html'], ['terms.html', 'terms-en.html'], ['support.html', 'support-en.html'], ['account-deletion.html', 'account-deletion-en.html']]) {
   ok(secs[a].length === secs[e].length && secs[a].every((x, i) => x.id === secs[e][i].id), `${a} / ${e}: same number of sections and same anchors (${secs[a].length})`)
@@ -200,7 +250,8 @@ for (const [a, e] of [['privacy.html', 'privacy-en.html'], ['terms.html', 'terms
 for (const f of LEGAL) {
   const t = legalHtml[f]
   ok(!/<script/i.test(t), `${f}: no script`)
-  ok(!/https?:\/\/(?!(www\.instagram\.com|cloud-prod\.colyseus\.io|posthog\.com|www\.revenuecat\.com)\b)/i.test(t.replace(/<a [^>]*href="https?:[^>]*>/g, '')), `${f}: no external resource, only plain links`)
+  ok(!/https?:\/\/(?!(www\.instagram\.com|cloud-prod\.colyseus\.io|posthog\.com|www\.revenuecat\.com|docs\.github\.com|privacycenter\.instagram\.com)\b)/i.test(t.replace(/<a [^>]*href="https?:[^>]*>/g, '')), `${f}: no external resource, only plain links`)
+  ok(/-en\.html$|^privacy\.html$/.test(f) && /^privacy/.test(f) || !/docs\.github\.com|privacycenter\.instagram\.com/.test(t), `${f}: the GitHub and Instagram policy links (the only additions to the external-link allow-list) appear on the privacy pages only`)
   ok(t.includes('hello@maslahagame.com'), `${f}: official email present`)
   ok(t.includes(`datetime="${UPDATED.iso}"`) && t.includes(UPDATED[/-en\.html$/.test(f) ? 'en' : 'ar']), `${f}: updated ${UPDATED.iso}`)
 }
