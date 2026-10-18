@@ -452,9 +452,6 @@ footer small a{color:inherit;font-weight:800}
 .sup-steps b::after{content:' · '}
 .sup-steps span{color:var(--ink-soft)}
 .sup-steps a{color:var(--stamp);font-weight:800}
-.gift{margin-top:10px;font-size:15px}
-.gift b{color:var(--stamp);font-weight:800}
-.gift b::after{content:': '}
 .sup-note{margin:8px 0 0;color:var(--ink-soft);font-size:13px;max-width:62ch}
 .qrcard{display:grid;justify-items:center;gap:8px;background:var(--cream);border:2px solid var(--ink);border-radius:14px;padding:12px;text-align:center;width:190px}
 .qrcard img{width:140px;height:auto;border-radius:6px}

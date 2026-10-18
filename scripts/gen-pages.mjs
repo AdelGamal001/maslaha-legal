@@ -63,7 +63,6 @@ const L = {
         ['ابعتلنا صورة التحويل', 'في رسالة على إنستجرام <a href="https://www.instagram.com/maslaha_game/" rel="noopener noreferrer" dir="ltr">@maslaha_game</a>.'],
         ['اربط إنستجرامك في اللعبة', 'من «حسابي»، وهديتك هتوصلك لوحدها.'],
       ],
-      giftB: 'هدية الداعم', gift: '3 أضعاف اللحلوح اللي نفس المبلغ بيجيبه جوه اللعبة.',
       note: 'ربط إنستجرام نازل في التحديث الجاي، والهدية مستنياك لحد ما تربط. الدعم اختياري ومش شراء. حوّلت بالغلط؟ ابعتلنا ونرجّعهولك.',
       qrAlt: 'كود إنستاباي للتحويل لـ adelgamal1@instapay', copy: 'انسخ العنوان', copied: 'اتنسخ ✓',
       abroad: 'من برّه مصر؟ ابعتلنا رسالة على إنستجرام ونتفق على طريقة.',
@@ -197,7 +196,6 @@ const L = {
         ['Send us the receipt', 'As an Instagram message to <a href="https://www.instagram.com/maslaha_game/" rel="noopener noreferrer" dir="ltr">@maslaha_game</a>.'],
         ['Link Instagram in the game', 'From «My account». Your gift arrives on its own.'],
       ],
-      giftB: 'Supporter gift', gift: '3× the lahloh the same amount buys inside the game.',
       note: 'Instagram linking comes in the next update, and your gift waits until you link. Support is voluntary, not a purchase. Sent by mistake? Message us and we will send it back.',
       qrAlt: 'InstaPay code for adelgamal1@instapay', copy: 'Copy address', copied: 'Copied ✓',
       abroad: 'Outside Egypt? Message us on Instagram and we will sort out a way.',
@@ -335,7 +333,6 @@ function page(c) {
     <h2>${sp.h2}</h2>
     <p class="sub">${sp.sub}</p>
     <ol class="sup-steps">${sp.steps.map(([b, t], i) => `<li><span class="no">${i + 1}</span><div><b>${b}</b><span>${t}</span></div></li>`).join('')}</ol>
-    <div class="gift"><b>${sp.giftB}</b><span>${sp.gift}</span></div>
     <p class="sup-note">${sp.note}</p>
   </div>
   <div class="qrcard reveal">
