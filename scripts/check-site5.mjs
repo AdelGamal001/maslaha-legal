@@ -114,6 +114,51 @@ for (const p of PAGES) {
     ok(log.some((l) => l.startsWith('::warning::')), 'fetch-stats: failures surface as GitHub warnings, not as a failed job')
   } finally { console.log = realLog }
 }
+{ // SITE-2 · A: the Instagram token rotation. Instagram's refresh may answer with a NEW token string: it is handed to the store step through a file (never printed), so IG_TOKEN does not die after 60 days
+  const fs = await import('./fetch-stats.mjs'); const { parseYaml } = await import('./lint-workflow.mjs')
+  const { mkdtempSync, writeFileSync: wf, readFileSync: rf, copyFileSync, existsSync: ex, statSync: st2 } = await import('node:fs'); const { tmpdir } = await import('node:os')
+  const rotate = async (expiresIn, tokenBack, over = {}) => {
+    const dir = mkdtempSync(join(tmpdir(), 'rotate-')); copyFileSync(join(root, 'stats.json'), join(dir, 'stats.json'))
+    const tokenFile = join(dir, 'ig-token'); const summary = join(dir, 'summary.md')
+    const env = { IG_TOKEN: 'fake-token-old', POSTHOG_PERSONAL_API_KEY: 'fake', GITHUB_EVENT_NAME: 'workflow_dispatch', GITHUB_STEP_SUMMARY: summary, ...(over.noOut ? {} : { IG_TOKEN_OUT: tokenFile }) }
+    const fetchFn = async (url) => {
+      url = String(url)
+      if (url.startsWith('https://eu.posthog.com/api/projects/293009/query/')) return new Response(JSON.stringify({ results: [[321]] }), { status: 200 })
+      if (url.includes('/me?fields=followers_count')) { if (over.meThrows) throw new Error('boom ' + env.IG_TOKEN); return new Response(JSON.stringify({ followers_count: 4321 }), { status: 200 }) }
+      if (url.includes('/refresh_access_token')) return new Response(JSON.stringify({ access_token: tokenBack, token_type: 'bearer', expires_in: expiresIn }), { status: 200 })
+      throw new Error('unexpected url ' + url)
+    }
+    const out = []; const realLog = console.log; console.log = (...a) => out.push(a.join(' '))
+    let res
+    try { res = await fs.main(env, dir, fetchFn, new Date('2026-10-18T10:00:00Z')) } finally { console.log = realLog }
+    const has = ex(tokenFile)
+    return { res, out, stats: JSON.parse(rf(join(dir, 'stats.json'), 'utf8')), token: has ? rf(tokenFile, 'utf8') : null, mode: has ? st2(tokenFile).mode & 0o777 : null, summary: ex(summary) ? rf(summary, 'utf8') : '' }
+  }
+  const r1 = await rotate(9 * 86400, 'fake-token-new')
+  ok(Number.isInteger(r1.stats.igFollowers) && r1.stats.igFollowers === 4321 && r1.stats.visitors30d === 321, 'token rotation: the pipeline writes the numbers as numbers (igFollowers 4321, visitors30d 321)')
+  ok(r1.token === 'fake-token-new' && r1.res.refreshed.rotated === true && (process.platform === 'win32' || r1.mode === 0o600), 'token rotation: a new token string from Instagram lands in IG_TOKEN_OUT, exactly the string and nothing else, mode 0600')
+  ok(r1.out.some((l) => /^::warning::Instagram token expires in 9 days/.test(l)), 'token rotation: fewer than 10 days left raises a ::warning:: (9 days)')
+  ok(!r1.out.join('\n').includes('fake-token') && !r1.summary.includes('fake-token') && Object.keys(r1.res.refreshed).sort().join() === 'days,line,rotated,until', 'token rotation: neither the old nor the new token appears in the log, the job summary or the returned value')
+  const r2 = await rotate(59 * 86400, 'fake-token-old')
+  ok(r2.token === null && r2.res.refreshed.rotated === false && !r2.out.some((l) => /expires in/.test(l)) && r2.out.some((l) => /valid until 2026-12-16 \(59 days\)/.test(l)), 'token rotation: the same token string and 59 days left writes no file and raises no warning')
+  const r2b = await rotate(12 * 86400, 'fake-token-old')
+  ok(!r2b.out.some((l) => /expires in/.test(l)), 'token rotation: 12 days left is still quiet (the warning starts below 10 days)')
+  const r3 = await rotate(59 * 86400, 'fake-token-new')
+  ok(r3.token === 'fake-token-new' && !r3.out.some((l) => /expires in/.test(l)), 'token rotation: a new string is stored even when plenty of days are left (no 10-day warning)')
+  const r4 = await rotate(59 * 86400, 'fake-token-new', { noOut: true })
+  ok(r4.token === null && r4.res.refreshed.rotated === false && r4.out.some((l) => /IG_TOKEN_OUT is not set/.test(l)), 'token rotation: without IG_TOKEN_OUT a new string only raises a warning, nothing is written')
+  const r5 = await rotate(59 * 86400, 'fake-token-old', { meThrows: true })
+  ok(r5.out.some((l) => /followers not updated: boom \*\*\*/.test(l)) && !r5.out.join('\n').includes('fake-token'), 'token rotation: a stray error message that carries the token is masked in the log')
+  // the workflow: the store step right after the fetch step, the PAT from SECRETS_PAT, the value only through stdin, nothing prints a token
+  const yml = read('.github/workflows/stats.yml'); const steps = parseYaml(yml).jobs.stats.steps
+  const fi = steps.findIndex((s) => /node scripts\/fetch-stats\.mjs/.test(s.run || '')); const store = steps[fi + 1] || {}
+  ok(fi >= 0 && steps[fi].env.IG_TOKEN_OUT === '${{ runner.temp }}/ig-token' && store.name === 'Store the refreshed Instagram token' && store.env && store.env.GH_TOKEN === '${{ secrets.SECRETS_PAT }}', 'stats.yml: "Store the refreshed Instagram token" follows the fetch step, GH_TOKEN comes from secrets.SECRETS_PAT, IG_TOKEN_OUT is runner.temp/ig-token')
+  ok(/gh secret set IG_TOKEN --repo "\$GITHUB_REPOSITORY" < "\$RUNNER_TEMP\/ig-token"/.test(store.run || '') && !/--body|-b\s|\|\s*gh\b/.test(store.run || ''), 'stats.yml: the secret is set with `gh secret set IG_TOKEN` and the value comes from stdin ($RUNNER_TEMP/ig-token), never from an argument or a pipe')
+  // a line "prints" when a print verb starts it or follows `;` / `{`; what is checked is the part of the line from the verb on (a test like `if (!env.IG_TOKEN) { note('IG_TOKEN is not set') }` is fine)
+  const printing = (text) => text.split('\n').map((l) => l.replace(/(^|\s)\/\/.*$/, '$1').replace(/^\s*[#*].*$/, '')).filter((l) => { const m = /\b(echo|printf|cat|tee|note|warn|console\.(?:log|info|warn|error))\b\s*\(?/.exec(l); return !!m && /\$\{?(GH_TOKEN|IG_TOKEN|SECRETS_PAT)\b|ig-token|\benv\.(IG_TOKEN|POSTHOG_PERSONAL_API_KEY)\b|access_token/.test(l.slice(m.index)) })
+  const leaks = [...printing(yml).map((l) => 'stats.yml: ' + l.trim()), ...printing(code(read('scripts/fetch-stats.mjs'))).filter((l) => !/fetchFn\(|encodeURIComponent/.test(l)).map((l) => 'fetch-stats.mjs: ' + l.trim())]
+  ok(leaks.length === 0, 'no echo / console.log line in stats.yml or fetch-stats.mjs references a token value' + (leaks.length ? ': ' + leaks.join(' | ') : ''))
+}
 for (const f of ['img/adel.webp', 'img/duo.webp', 'img/est/KS.webp', 'img/shop.webp']) ok(!existsSync(join(root, f)), `${f} is gone`)
 ok(!/adel\.webp|duo\.webp|KS\.webp|shop\.webp/.test(html['index.html'] + html['en.html'] + read('home.css')), 'no reference to the removed images')
 const imgs = ['img', 'img/est'].flatMap((d) => readdirSync(join(root, d)).filter((f) => f.endsWith('.webp')).map((f) => d + '/' + f))
