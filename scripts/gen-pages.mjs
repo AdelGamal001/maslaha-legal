@@ -1,11 +1,14 @@
 // Dev-only: writes index.html (Arabic) and en.html (English) from one template so the two pages can never drift apart.
 // Run:  node scripts/gen-pages.mjs      (no dependencies, no network). The site itself has no build step: the output is committed.
 // Every fact below comes from the game repo (docs/game-design.md, src/game/copy.js, stats.js, clerkManifest.js, tuning.js, docs/design/estimation.md).
-import { writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { createHash } from 'node:crypto'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
+// ?v=<content hash> so a visitor never pairs new HTML with a cached old home.css/home.js (Pages caches 10 min)
+const ver = (f) => createHash('sha1').update(readFileSync(join(root, f))).digest('hex').slice(0, 8)
 const IG = 'https://www.instagram.com/maslaha_game'
 const IG_OTHMAN = 'https://www.instagram.com/_othman_007_'
 const IG_ADEL = 'https://www.instagram.com/adelgamal001'
@@ -360,7 +363,7 @@ function page(c) {
 <meta property="og:image" content="https://maslahagame.com/img/race.webp">
 ${c.fonts.map((f) => `<link rel="preload" href="fonts/${f}.woff2" as="font" type="font/woff2" crossorigin>`).join('\n')}
 <link rel="icon" href="favicon.ico" sizes="any">
-<link rel="stylesheet" href="home.css">
+<link rel="stylesheet" href="home.css?v=${ver('home.css')}">
 ${c.altLinks}
 </head>
 <body>
@@ -510,7 +513,7 @@ ${opts}
   <nav aria-label="${c.footer.navLabel}">${c.footer.links.map(([h, t]) => `<a href="${h}">${t}</a>`).join('')}<a href="${IG}" data-cta="footer" rel="noopener noreferrer">${c.footer.ig}</a></nav>
 </div></footer>
 
-<script src="home.js" defer></script>
+<script src="home.js?v=${ver('home.js')}" defer></script>
 <script src="stats.js" defer></script>
 <script src="analytics.js" defer></script>
 </body>
