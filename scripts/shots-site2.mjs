@@ -1,5 +1,5 @@
 // Dev-only: full-page JPEG screenshots of the pages Adel reviews, at phone (390) and desktop (1280) width, into review/site-2/<page>-<width>.jpg.
-//   node scripts/shots-site2.mjs [outDir]          (default: review/site-2; every file stays under 600 KB: the JPEG quality goes down from 80, then the size, until it does)
+//   node scripts/shots-site2.mjs [outDir] [page.html …]   (default: review/site-2 and all six pages; name pages to re-shoot only those; every file stays under 600 KB: the JPEG quality goes down from 80, then the size, until it does)
 // Same setup as check-site5.mjs: puppeteer-core from the game tree's node_modules (SITE5_GAME_TREE) or a local one, Chrome from CHROME_PATH or the usual places.
 // The repo root is served on 127.0.0.1 and every request to another host is aborted, so nothing leaves the machine (the live numbers show their offline state).
 import { createServer } from 'node:http'
@@ -11,7 +11,9 @@ import { fileURLToPath } from 'node:url'
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const GAME = process.env.SITE5_GAME_TREE || 'G:/Work Space/maslahtak2/worktrees/maslahtak-merge-meta'
 const out = resolve(process.argv[2] || join(root, 'review/site-2'))
-const PAGES = ['index.html', 'en.html', 'privacy.html', 'privacy-en.html', 'account-deletion.html', 'account-deletion-en.html']
+const ALL_PAGES = ['index.html', 'en.html', 'privacy.html', 'privacy-en.html', 'account-deletion.html', 'account-deletion-en.html']
+const PAGES = process.argv.length > 3 ? process.argv.slice(3) : ALL_PAGES
+for (const p of PAGES) if (!ALL_PAGES.includes(p)) throw new Error('unknown page ' + p + ' (one of ' + ALL_PAGES.join(', ') + ')')
 const WIDTHS = [390, 1280]
 // [scale, JPEG quality], tried in this order until a file is under MAX_BYTES. Short pages stay at 1 / 80. A tall illustrated page first loses quality (phone width: down to 45 at full size;
 // desktop: down to 55, then it is saved at 80% width = 1024 px, then smaller). The names and the 390 / 1280 layouts never change; only the saved image gets smaller.
