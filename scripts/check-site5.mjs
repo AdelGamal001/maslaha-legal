@@ -26,7 +26,16 @@ const GAME_HOST = 'de-fra-2bb59b4f.colyseus.cloud'
 const LIVE_URL = `https://${GAME_HOST}/stats`
 const PH_KEY = 'phc_r4f8hDgcyBiZfSfhaWYjeYGigNkT4E7tvFauUAscDbrU'
 let failed = 0
-let skipped = 0 // pins that could not run on this machine (no game tree, no browser): counted, printed at the end, and a failure under CI=true
+let skipped = 0 // pins that could not run on this machine (no game tree, no browser): counted, printed on the last line, and a failure under CI=true
+const skipWhy = []
+const skip = (n, why) => { skipped += n; skipWhy.push(`${n} ${why}`) }
+// the last line: the result, how many pins were skipped, and the exit code (a skipped pin is a failure under CI=true: a green CI run must have run every pin)
+function finish(passedMsg, failedWhat) {
+  console.log(failed ? `\n${failed} ${failedWhat} FAILED` : `\n${passedMsg}`)
+  const ci = process.env.CI === 'true'
+  if (skipped) console.log(`${skipped} pins skipped (${skipWhy.join('; ')})${ci ? ': CI=true, so this run fails' : ''}`)
+  process.exit(failed || (skipped && ci) ? 1 : 0)
+}
 const ok = (cond, msg) => { if (cond) console.log('  ok   ' + msg); else { failed++; console.log('  FAIL ' + msg) } }
 const warn = (msg) => console.log('  note ' + msg)
 const read = (f) => readFileSync(join(root, f), 'utf8')
@@ -222,6 +231,7 @@ let pin = null
 if (treeKindNow === 'none') warn(`${GAME} is not a git checkout of the game repo (set SITE5_GAME_TREE): the pins that read the game at ${GAME_SHA_SHORT} are skipped`)
 else if (!hasCommit(GAME_SHA, GAME)) ok(false, `the game tree ${GAME} does not contain the pinned commit ${GAME_SHA_SHORT}: run \`git fetch origin merge/0.2.8\` there (or point SITE5_GAME_TREE at a tree that has it)`)
 else { const mdText = gameFile(LEGAL_MD_PATH); pin = { mdText, md: parseLegalMd(mdText), copy: gameFile(COPY_PATH), at: (p) => gameFile(p) } }
+if (!pin) skip(16, `pins that read the game at ${GAME_SHA_SHORT} (text, allow-list, generator, cross-check, server facts, deletion quotes)`)
 const enBody = (s) => norm(s.p.replace(/\[\[|\]\]/g, ''))
 if (pin) {
   for (const [kind, file] of [['privacy', 'privacy.html'], ['terms', 'terms.html']]) {
@@ -349,16 +359,16 @@ try {
   const visible = ids.filter((n) => !hidden.has(n)).length
   const c63 = ids.includes(63)
   ok(chars === visible + (c63 ? 0 : 1), `characters ${chars} = visible roster ${visible}${c63 ? '' : ' + c63 (CHAR63 not merged in this tree yet)'}`)
-} catch (e) { warn('game-tree facts not checked: ' + e.message) }
+} catch (e) { warn('game-tree facts not checked: ' + e.message); skip(4, 'landing-page fact pins (clerkManifest, tuning, stats)') }
 
 // ---------- live checks ----------
-if (process.argv.includes('--static')) { console.log(failed ? `\n${failed} static check(s) FAILED` : '\nstatic checks passed'); process.exit(failed ? 1 : 0) }
+if (process.argv.includes('--static')) finish('static checks passed', 'static check(s)')
 const req = createRequire(join(GAME, 'package.json'))
 let puppeteer
 for (const spec of [join(root, 'node_modules/puppeteer-core'), 'puppeteer-core']) { try { puppeteer = createRequire(import.meta.url)(spec); break } catch { /* next */ } }
 if (!puppeteer) { try { puppeteer = req('puppeteer-core') } catch { /* none */ } }
 const CHROME = [process.env.CHROME_PATH, 'C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe', '/usr/bin/google-chrome'].find((p) => p && existsSync(p))
-if (!puppeteer || !CHROME) { warn('puppeteer-core or Chrome not found: live checks skipped'); process.exit(failed ? 1 : 0) }
+if (!puppeteer || !CHROME) { warn('puppeteer-core or Chrome not found: live checks skipped'); skip(1, 'live part (needs puppeteer-core and Chrome)'); finish('static checks passed, live part not run', 'check(s)') }
 
 const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.webp': 'image/webp', '.woff2': 'font/woff2', '.png': 'image/png', '.svg': 'image/svg+xml' }
 const server = createServer((rq, rs) => {
@@ -587,5 +597,4 @@ for (const p of PAGES) {
   ok(bad === 0, `${p}: ${hrefs.length} href/src values resolve`)
 }
 await browser.close(); server.close()
-console.log(failed ? `\n${failed} check(s) FAILED` : '\nall site5 checks passed')
-process.exit(failed ? 1 : 0)
+finish('all site5 checks passed', 'check(s)')
