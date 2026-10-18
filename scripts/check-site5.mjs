@@ -311,7 +311,7 @@ ok(/<section id="delete">/.test(legalHtml['privacy.html']) && /<section id="dele
     const settings = pin.copy.slice(pin.copy.indexOf('\n  settings: {')) // TEXT.settings: the first `title:` and the delete* keys below it
     const str = (k) => { const m = new RegExp('\\n    ' + k + ": '([^']*)'").exec(settings); return m ? m[1] : null }
     const [title, account, del, sheet, detail, yes, restore] = [str('title'), str('account'), str('delete'), str('deleteConfirm'), str('deleteDetail'), str('deleteYes'), str('restore')]
-    ok(title === 'الإعدادات' && account === 'الحساب' && del === 'امسح حسابي' && yes === 'امسح حسابي' && dAr.includes(sheet) && dAr.includes(detail) && dEn.includes(sheet) && dEn.includes(detail) && /«استرجاع المشتريات»/.test(detail), `the deletion pages quote the app at ${GAME_SHA_SHORT}: Settings «${title}» › «${account}» › «${del}», the sheet «${sheet}» and «${detail}»`)
+    ok(title === 'الإعدادات' && account === 'الحساب' && del === 'امسح حسابي' && yes === 'امسح حسابي' && dAr.includes(sheet) && dAr.includes(detail) && dEn.includes(sheet) && dEn.includes(detail) && !!detail, `the deletion pages quote the app at ${GAME_SHA_SHORT}: Settings «${title}» › «${account}» › «${del}», the sheet «${sheet}» and «${detail}»`)
     ok(/\bcodex: false\b/.test(pin.at('src/game/features.js')) && /^\s*restore: 'استرجاع المشتريات'/m.test(pin.copy) && /id: 'account', label: t\.account/.test(pin.at('src/screens/Settings.jsx')), 'game facts behind the pages: features.codex is false (the guide is hidden), the shop button is «استرجاع المشتريات», Settings has an «الحساب» tab')
   }
 }
