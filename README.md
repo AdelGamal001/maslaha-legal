@@ -84,6 +84,17 @@ Do not replace the current copy with outdated source paragraphs.
 
 ## Changes
 
+### 18/10/2026 — Re-pin to 2fe95a0bd (merge/0.2.8 after COPY-0.2.8), branch site-3
+
+| What | Detail |
+|---|---|
+| Pinned | `GAME_SHA = 2fe95a0bd519e3cd7aa7babfff6ce87391675057` (`2fe95a0bd`), set with `node scripts/gen-legal.mjs --pin 2fe95a0bd`. The footers say «نسخة النص: 2fe95a0bd» / «Text version: 2fe95a0bd». |
+| Arabic text that moved (vs `26cfbf426`) | 14 privacy paragraphs and 1 terms paragraph were re-translated in `legal-en.mjs`: «الدخول اختياري» (Google, and Apple too on iPhone), «اللي على جهازك», «نسخة الحساب», «أونلاين الأوضة», «تقارير الأعطال», «إحصائيات اللعب», «مين بيستلمها», «الشراء بفلوس حقيقية» (new last sentence: for «اعمل شخصيتك» photos are deleted from our side after delivery, the email after 30 days, and it stays encrypted in the server backup), «الحركة والمايك», «الأصحاب», «مزوّدين الخدمة» (the server-counting sentence moved to the end), «مسح الحساب», «حقوقك» (statistics «زي ما اتشرح في «إحصائيات اللعب»» instead of «بموافقتك»), «الأطفال», and the terms «الاحترام» (the blocked player's room does not show up; the quick-play and automatic one-day-lock sentences are gone). «الأطفال» keeps both «أقل من 18» sentences by Adel's decision. |
+| Deletion pages | the app's delete sheet now ends with «ومفيش فلوس بترجع.» (`copy.js`, `deleteDetail`): both deletion pages quote it instead of the old «المشتريات بفلوس بترجع…» line; the English page also names «استرجاع المشتريات» in Arabic. One `check-site5` pin line changed: the quoted sheet line is read from the app at the pinned commit and no longer has to contain the shop button name (that button is still pinned on its own). |
+| Proof | `check-site5` static + live: 358 ok, 0 FAIL, 0 skipped, no notes (the old «الاحترام» note is gone: the in-app text caught up). A second `gen-legal.mjs` run changes nothing. A dry run on `fa70124e8` before the merge found the old sheet line in the deletion pages. |
+| Screenshots | `privacy`, `privacy-en`, `account-deletion`, `account-deletion-en` at 390 and 1280 were taken again, all under 600 KB. |
+| Next | the four site-only sections (`site`, `backup`, `rooms`, `support-dm`) stay for good: they are not in the game text. The next re-pin is `--pin <sha>` plus whatever the Arabic text changed. |
+
 ### 18/10/2026 — Re-pin to merge/0.2.8 after REFERRAL-2 (branch site-2)
 
 | What | Detail |
