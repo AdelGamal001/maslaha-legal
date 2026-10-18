@@ -84,6 +84,8 @@ Do not replace the current copy with outdated source paragraphs.
 
 ## Changes
 
+- **18/10 23:58 UTC — pin moved to the shipped build:** `GAME_SHA = f48eb1852` (= maslahtak `main` after the 0.2.8 version bump; the legal text is byte-identical to 2fe95a0bd, only the footers «نسخة النص» changed). check-site5 static green.
+
 ### 18/10/2026 — Re-pin to 2fe95a0bd (merge/0.2.8 after COPY-0.2.8), branch site-3
 
 | What | Detail |
