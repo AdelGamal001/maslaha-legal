@@ -1,15 +1,25 @@
 // Dev-only: writes index.html (Arabic) and en.html (English) from one template so the two pages can never drift apart.
 // Run:  node scripts/gen-pages.mjs      (no dependencies, no network). The site itself has no build step: the output is committed.
+//       node scripts/gen-pages.mjs --launch   writes the AFTER-launch state (the game is live on the App Store); --before writes the BEFORE state; no flag = the LAUNCH constant below.
 // Every fact below comes from the game repo (docs/game-design.md, src/game/copy.js, stats.js, clerkManifest.js, tuning.js, docs/design/estimation.md).
 import { readFileSync, writeFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
-import { dirname, join } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
+const SELF = fileURLToPath(import.meta.url)
+const RUN = !!process.argv[1] && SELF === resolve(process.argv[1])
+// STORE-TEXT (24/10 · مشكك A بند 2): the home page has TWO states. false = BEFORE launch (published with the legal pages, runbook step 10): no App Store button (a dead link while the review runs), the meta says
+// «قريب على iOS وأندرويد» and the «شخصيتك بوشّك» block keeps its «قريب» badge. true = AFTER launch (runbook step 14/7, once Apple released the version and the App Store link opens): the App Store button,
+// «على Google Play قريب» as plain text, the meta «على iPhone دلوقتي، وأندرويد قريب», and «شخصيتك بوشّك» without «قريب» (the product is on sale in the iOS store) that sends the visitor to the store button, not to Instagram.
+// `maslaha-legal.patch` is the BEFORE state; `maslaha-legal-launch.patch` flips this line and rewrites index.html + en.html on top of it. check-site5 pins both states through build().
+export const LAUNCH = false
 // ?v=<content hash> so a visitor never pairs new HTML with a cached old home.css/home.js (Pages caches 10 min)
 const ver = (f) => createHash('sha1').update(readFileSync(join(root, f))).digest('hex').slice(0, 8)
 const IG = 'https://www.instagram.com/maslaha_game'
+// STORE-TEXT (24/10 · LOCAL item 10): the one way to get the game on the home page. The id is APP_STORE_URL in the game repo (src/app/links.js); Google Play stays plain text (no link) until production access
+const APP_STORE = 'https://apps.apple.com/app/id6815344684'
 const IG_OTHMAN = 'https://www.instagram.com/_othman_007_'
 const IG_ADEL = 'https://www.instagram.com/adelgamal001'
 // the game server's public counts (server/src/stats.ts: { rooms, players, at }); the page asks it once a minute
@@ -28,6 +38,7 @@ const L = {
     lang: 'ar', dir: 'rtl', h1: 'قعدة مصلحة', file: 'index.html', other: 'en.html',
     title: 'قعدة مصلحة | لعبة بارتي مجانية عن ورق المصالح',
     desc: 'اتسابق مع صحابك تخلّص ورقك في المصلحة. وكمان استميشن، لعبة ورق شرق أوسطية. مجانية، من غير إعلانات، ومفيش ادفع عشان تكسب. قريب على iOS وأندرويد.',
+    descLaunch: 'اتسابق مع صحابك تخلّص ورقك في المصلحة. وكمان استميشن، لعبة ورق شرق أوسطية. مجانية، من غير إعلانات، ومفيش ادفع عشان تكسب. على iPhone دلوقتي، وأندرويد قريب.',
     ogDesc: 'المكاتب قليلة. والناس كتير. والكل محتاج ختم. مجانية ومن غير إعلانات.',
     canonical: 'https://maslahagame.com/', ogTitle: 'قعدة مصلحة', fonts: ['baloo-arabic', 'lalezar-arabic', 'baloo-latin'],
     altLinks: '<link rel="alternate" hreflang="en" href="en.html">\n<link rel="alternate" hreflang="ar" href="index.html">',
@@ -35,12 +46,12 @@ const L = {
     nav: [['#how', 'بتتلعب إزاي'], ['#estimation', 'استميشن'], ['#ways', 'اكسب بطريقتك'], ['#play', 'تابعنا']],
     langLink: '<a class="lang" href="en.html" lang="en" hreflang="en">English</a>',
     h1sub: '<span class="ar" lang="en" dir="ltr">Qaadet Maslaha</span>',
-    eyebrow: 'لعبة بارتي مجانية · من غير إعلانات · من 2 لـ 8 لاعبين',
+    eyebrow: 'لعبة بارتي مجانية · من غير إعلانات · الأوضة ببلاش لحد 3، وكبير الشلة لحد 8',
     tag: 'المكاتب قليلة. والناس كتير. والكل محتاج ختم.',
     lead: 'اتسابق مع صحابك تخلّص ورقك في مصلحة كلها طوابير وموظفين متنرفزين. والكسبان صاحب أعلى نقط، مش أول واحد يخلّص.',
     heroAlt: 'تلات لاعيبة بينطّوا على مكتب الموظف وفي إيدهم أختام',
-    cta: 'تابعنا على إنستجرام وهنبلّغك يوم النزول', ctaGhost: 'شوف بتتلعب إزاي',
-    stores: ['App Store · قريب', 'Google Play · قريب'],
+    cta: 'تابعنا على إنستجرام عشان الجديد', ctaGhost: 'شوف بتتلعب إزاي',
+    get: { h: 'نزّل اللعبة', ios: 'نزّلها من App Store', play: 'على Google Play قريب', hSoon: 'اللعبة جاية قريب', iosSoon: 'على App Store', playSoon: 'على Google Play' },
     ticketSmall: 'رقمك', ticketNow: 'الدور على', stamp: 'مقبول؟',
     board: [
       'فتحي المقص بيبطّأ اللي حواليه', 'عبد الرحمن بيغرّقك استيكرات ونصايح', 'الحج ثلعوه بيجري ورا أقرب واحد',
@@ -53,17 +64,17 @@ const L = {
       ['من غير<br>إعلانات', 'مفيش إعلانات خالص', 'مفيش إعلان بين الأدوار ولا في أي حتة. اللعبة وبس.'],
       ['عادلة', 'مفيش ادفع عشان تكسب', 'الفلوس مش بتشتري الفوز. الشخصيات متوازنة، والمهارة والحظ بيحسموا.'],
     ],
-    stats: [[58, 'ميني جيم'], [0, 'إعلانات'], [20, 'شخصية بقدرتها'], [8, 'لاعبين في الأوضة']],
+    stats: [[56, 'ميني جيم'], [0, 'إعلانات'], [20, 'شخصية بقدرتها'], [8, 'لاعبين مع «كبير الشلة»']],
     support: {
-      nav: 'ادعمنا', chip: 'ادعم القعدة بأي مبلغ · وخد 3 أضعاف اللحلوح',
+      nav: 'ادعمنا', chip: 'ادعم القعدة بأي مبلغ',
       kicker: 'ادعم القعدة', h2: 'ادعم اللعبة بأي مبلغ',
       sub: 'قعدة مصلحة لعبة مستقلة، من غير إعلانات. دعمك بيغطي السيرفرات ورسوم المتاجر، وبيخلّينا نكمّل.',
       steps: [
         ['حوّل أي مبلغ', 'على إنستاباي من الكود أو العنوان.'],
-        ['ابعتلنا صورة التحويل', 'في رسالة على إنستجرام <a href="https://www.instagram.com/maslaha_game/" rel="noopener noreferrer" dir="ltr">@maslaha_game</a>.'],
-        ['اربط إنستجرامك في اللعبة', 'من «حسابي»، وهديتك هتوصلك لوحدها.'],
+        ['ابعتلنا صورة التحويل لو حبيت', 'في رسالة على إنستجرام <a href="https://www.instagram.com/maslaha_game/" rel="noopener noreferrer" dir="ltr">@maslaha_game</a>، ونتأكد إنها وصلت.'],
+        ['خلاص كده', 'الدعم بيغطي السيرفرات ورسوم المتاجر، ومن غير أي مقابل جوه اللعبة.'],
       ],
-      note: 'ربط إنستجرام نازل في التحديث الجاي، والهدية مستنياك لحد ما تربط. الدعم اختياري ومش شراء. حوّلت بالغلط؟ ابعتلنا ونرجّعهولك.',
+      note: 'الدعم اختياري ومش شراء، ومن غير أي مقابل جوه اللعبة. حوّلت بالغلط؟ ابعتلنا ونرجّعهولك.',
       qrAlt: 'كود إنستاباي للتحويل لـ adelgamal1@instapay', copy: 'انسخ العنوان', copied: 'اتنسخ ✓',
       abroad: 'من برّه مصر؟ ابعتلنا رسالة على إنستجرام ونتفق على طريقة.',
     },
@@ -75,7 +86,7 @@ const L = {
       steps: [
         { img: 'step-room', alt: 'لاعب داخل المصلحة ماسك ملفه وقدامه زحمة', h: 'اقعد القعدة',
           p: 'اعمل أوضة وابعت الكود لصحابك، أو ضيف بوتات. ولو حد فصل، بوت بياخد مكانه لحد ما يرجع.',
-          chips: ['كود من 4 حروف', 'من 2 لـ 8 لاعبين', 'ماتش قصير أو طويل'], ok: 'تمام' },
+          chips: ['كود من 4 حروف', 'ببلاش لحد 3، وكبير الشلة لحد 8', 'ماتش قصير أو طويل'], ok: 'تمام' },
         { img: 'step-chars', alt: 'تلات شخصيات: جزار وطيار دليفري ورجل أعمال', h: 'اختار شخصيتك',
           p: 'كل شخصية ليها 13 نقطة على أربع صفات: قوة وسرعة وذكاء وشياكة. ومعاها قدرة واحدة بتكسر قاعدة.',
           chips: ['20 شخصية', 'قدرة واحدة لكل شخصية', 'كل صفة من 1 لـ 5'], ok: 'تمام' },
@@ -133,15 +144,16 @@ const L = {
       opts: [
         ['ابدأ بشخصيتين', 'أول ما تدخل معاك لحلوح هدية، تشتري بيها شخصيتين.'],
         ['قدرة واحدة لكل شخصية', 'بتكسر قاعدة واحدة بس. فتحي المقص بيبطّأ اللي حواليه، وحمار جحا بيحجز لك مكانك في الطابور.'],
-        ['كمّل بلحلوح', 'لحلوح عملة بتتجمع من لعبك. تشتري بيها شخصيات جديدة.'],
+        ['كمّل بلحلوح', 'لحلوح عملة بتجمعها من لعبك. تشتري بيها شخصيات جديدة.'],
       ],
     },
     custom: {
       kicker: 'وشّك وحبرنا', h2: 'شخصيتك بوشّك', soon: 'قريب',
-      sub: 'عايز تلعب بنفسك؟ ابعتلنا صورتك على إنستجرام ونرسمك بستايل اللعبة، وتبقى شخصية في اللعبة للكل.',
+      sub: 'عايز تلعب بنفسك؟ ابعتلنا صورتك على إنستجرام ونعملك شخصية بستايل اللعبة، وكل اللاعيبة يلعبوا بيها.',
       price: 'مرة واحدة، من جوه اللعبة', sub2: 'شكل بس، من غير أي ميزة في اللعب.',
-      facts: ['رسم فريقنا', 'شكلك بستايلنا', 'من غير أي ميزة في اللعب'],
+      facts: ['بنعملها من صورك', 'شكلك بستايلنا', 'من غير أي ميزة في اللعب'],
       cta: 'ابعتلنا على إنستجرام', aria: 'مثال: عثمان',
+      launch: { sub: 'عايز تلعب بنفسك؟ اطلب «اعمل شخصيتك» من متجر اللعبة، وابعتلنا 4 صور على إنستجرام أو الإيميل، ونعملك شخصية بستايل اللعبة بأدوات ذكاء اصطناعي، وكل اللاعيبة يلعبوا بيها.', cta: 'نزّل اللعبة' },
       photoAlt: 'عثمان', charAlt: 'عثمان — في اللعبة', cap: 'في اللعبة', turnAlt: 'شخصية عثمان من أربع زوايا', turn: 'جاهز للطابور، من كل الزوايا',
     },
     maker: {
@@ -152,7 +164,7 @@ const L = {
       seals: [['المخ', 'عادل'], ['العضلات', 'الـ AI']],
     },
     final: {
-      kicker: 'يوم النزول', h2: 'عايز تلعبها أول واحد؟', sub: 'تابعنا على إنستجرام وهنبلّغك يوم النزول.', stamp: 'تابعنا',
+      kicker: 'خليك معانا', h2: 'عايز تعرف الجديد أول بأول؟', sub: 'تابعنا على إنستجرام عشان الجديد.', stamp: 'تابعنا',
     },
     footer: { by: '© 2026 قعدة مصلحة · من صنع', byName: 'عادل جمال', navLabel: 'معلومات اللعبة',
       links: [['privacy.html', 'الخصوصية'], ['terms.html', 'الشروط'], ['support.html', 'الدعم'], ['account-deletion.html', 'حذف البيانات']], ig: 'إنستجرام' },
@@ -161,6 +173,7 @@ const L = {
     lang: 'en', dir: 'ltr', h1: 'Qaadet Maslaha', file: 'en.html', other: 'index.html',
     title: 'Qaadet Maslaha | A free party game about Egyptian paperwork',
     desc: 'Race your friends through Egyptian paperwork. Plus Estimation, a Middle Eastern card game. Free, no ads, no pay-to-win. Coming to iOS and Android.',
+    descLaunch: 'Race your friends through Egyptian paperwork. Plus Estimation, a Middle Eastern card game. Free, no ads, no pay-to-win. Now on iPhone, coming soon to Android.',
     ogDesc: 'Too few desks. Too many people. Everyone needs a stamp. Free, no ads, no pay-to-win.',
     canonical: 'https://maslahagame.com/en.html', ogTitle: 'Qaadet Maslaha', fonts: ['baloo-latin', 'lalezar-arabic', 'baloo-arabic'],
     altLinks: '<link rel="alternate" hreflang="ar" href="index.html">\n<link rel="alternate" hreflang="en" href="en.html">',
@@ -168,12 +181,12 @@ const L = {
     nav: [['#how', 'How it plays'], ['#estimation', 'Estimation'], ['#ways', 'Win your way'], ['#play', 'Follow us']],
     langLink: '<a class="lang ar" href="index.html" lang="ar" hreflang="ar">عربي</a>',
     h1sub: '<span class="ar" lang="ar">قعدة مصلحة</span>',
-    eyebrow: 'Free party game · No ads · 2–8 players',
+    eyebrow: 'Free party game · No ads · Free up to 3 players, Big Host up to 8',
     tag: 'Too few desks. Too many people. Everyone needs a stamp.',
     lead: 'Race your friends to get your papers stamped in an office full of queues and grumpy clerks. The winner has the most points, not the first one out.',
     heroAlt: 'Three players dive toward a clerk’s desk, rubber stamps in hand',
-    cta: 'Follow us on Instagram and we’ll tell you launch day', ctaGhost: 'See how it plays',
-    stores: ['App Store · soon', 'Google Play · soon'],
+    cta: 'Follow us on Instagram for what’s new', ctaGhost: 'See how it plays',
+    get: { h: 'Get the game', ios: 'Get it on the App Store', play: 'Coming soon to Google Play', hSoon: 'Coming soon', iosSoon: 'On the App Store', playSoon: 'On Google Play' },
     ticketSmall: 'Your number', ticketNow: 'Now serving', stamp: 'APPROVED?',
     board: [
       'Fathy the barber slows everyone near him', 'Abdelrahman floods you with stickers and advice', 'Haj Thal3awa chases whoever is closest',
@@ -186,17 +199,17 @@ const L = {
       ['NO<br>ADS', 'No ads. Ever.', 'No pop-ups between rounds, or anywhere else. Just the game.'],
       ['FAIR', 'No pay-to-win', 'Money doesn’t buy the win. Characters are balanced; skill and luck decide.'],
     ],
-    stats: [[58, 'mini-games'], [0, 'ads'], [20, 'characters'], [8, 'players per room']],
+    stats: [[56, 'mini-games'], [0, 'ads'], [20, 'characters'], [8, 'players with Big Host']],
     support: {
-      nav: 'Donate', chip: 'Support the game with any amount · get 3× the lahloh',
+      nav: 'Donate', chip: 'Support the game with any amount',
       kicker: 'Support the game', h2: 'Back the game with any amount',
       sub: 'Qaadet Maslaha is an independent game with no ads. Your support pays for the servers and store fees, and keeps us going.',
       steps: [
         ['Send any amount', 'By InstaPay, from the code or the address.'],
-        ['Send us the receipt', 'As an Instagram message to <a href="https://www.instagram.com/maslaha_game/" rel="noopener noreferrer" dir="ltr">@maslaha_game</a>.'],
-        ['Link Instagram in the game', 'From «My account». Your gift arrives on its own.'],
+        ['Send us the receipt if you like', 'As an Instagram message to <a href="https://www.instagram.com/maslaha_game/" rel="noopener noreferrer" dir="ltr">@maslaha_game</a>, and we will confirm it arrived.'],
+        ['That is all', 'Your support pays for the servers and store fees, with nothing in return inside the game.'],
       ],
-      note: 'Instagram linking comes in the next update, and your gift waits until you link. Support is voluntary, not a purchase. Sent by mistake? Message us and we will send it back.',
+      note: 'Support is voluntary, not a purchase, and gives nothing inside the game. Sent by mistake? Message us and we will send it back.',
       qrAlt: 'InstaPay code for adelgamal1@instapay', copy: 'Copy address', copied: 'Copied ✓',
       abroad: 'Outside Egypt? Message us on Instagram and we will sort out a way.',
     },
@@ -208,7 +221,7 @@ const L = {
       steps: [
         { img: 'step-room', alt: 'A player walks into the office holding his file, a crowd behind him', h: 'Take a seat',
           p: 'Make a room and send the code to your friends, or add bots. If someone drops, a bot takes their seat until they’re back.',
-          chips: ['4-letter code', '2–8 players', 'Short or long match'], ok: 'OK' },
+          chips: ['4-letter code', 'Free up to 3, Big Host up to 8', 'Short or long match'], ok: 'OK' },
         { img: 'step-chars', alt: 'Three characters: a butcher, a delivery rider and a businessman', h: 'Pick your character',
           p: 'Every character has 13 points across four stats: strength, speed, intellect and style. Each also has one ability that bends a single rule.',
           chips: ['20 characters', 'One ability each', 'Stats from 1 to 5'], ok: 'OK' },
@@ -271,10 +284,11 @@ const L = {
     },
     custom: {
       kicker: 'Your face. Our ink.', h2: 'Your character, your face', soon: 'SOON',
-      sub: 'Want to play as yourself? Send us your photo on Instagram and we’ll draw you in the game’s style, as a character everyone can play.',
+      sub: 'Want to play as yourself? Send us your photo on Instagram and we’ll make you a character in the game’s style, one everyone can play.',
       price: 'One time, from inside the game', sub2: 'Looks only. No advantage in play.',
-      facts: ['Drawn by our team', 'Your look, our style', 'No gameplay advantage'],
+      facts: ['Made from your photos', 'Your look, our style', 'No gameplay advantage'],
       cta: 'Message us on Instagram', aria: 'Example: Othman',
+      launch: { sub: 'Want to play as yourself? Buy “Make your character” in the game’s shop, send us 4 photos on Instagram or by email, and we’ll make you a character in the game’s style with AI tools, one everyone can play.', cta: 'Get the game' },
       photoAlt: 'Othman', charAlt: 'Othman — in the game', cap: 'In the game', turnAlt: 'Othman’s character from four angles', turn: 'Ready to queue, from every angle',
     },
     maker: {
@@ -285,14 +299,14 @@ const L = {
       seals: [['The brains', 'Adel'], ['The muscle', 'The AI']],
     },
     final: {
-      kicker: 'Launch day', h2: 'Want to be first in line?', sub: 'Follow us on Instagram and we’ll tell you launch day.', stamp: 'FOLLOW US',
+      kicker: 'Stay with us', h2: 'Want the news first?', sub: 'Follow us on Instagram for what’s new.', stamp: 'FOLLOW US',
     },
     footer: { by: '© 2026 Qaadet Maslaha · Made by', byName: 'Adel Gamal', navLabel: 'Game information',
       links: [['privacy-en.html', 'Privacy'], ['terms-en.html', 'Terms'], ['support-en.html', 'Support'], ['account-deletion-en.html', 'Data deletion']], ig: 'Instagram' },
   },
 }
 
-function page(c) {
+function page(c, launch = LAUNCH) {
   const w = c.how.w
   const imgSize = { 'step-room': [960, 540], 'step-chars': [960, 540], 'step-hazards': [960, 540], 'step-clerk': [960, 552], 'step-rest': [960, 679], 'step-result': [960, 717] }
   const widgets = [
@@ -342,6 +356,13 @@ function page(c) {
     <small>${sp.abroad}</small>
   </div>
 </div></section>`
+  const stores = launch
+    ? `<div class="stores" id="get" role="group" aria-label="${c.get.h}"><b class="get-h">${c.get.h}</b><a class="btn" href="${APP_STORE}" rel="noopener noreferrer">${c.get.ios}</a><span class="store">${c.get.play}</span></div>`
+    : `<div class="stores" id="get" role="group" aria-label="${c.get.hSoon}"><b class="get-h">${c.get.hSoon}</b><span class="store">${c.get.iosSoon}</span><span class="store">${c.get.playSoon}</span></div>`
+  const cu = c.custom
+  const customTitle = launch ? cu.h2 : `${cu.h2} <span class="soon">${cu.soon}</span>`
+  const customSub = launch ? cu.launch.sub : cu.sub
+  const customCta = launch ? `<a class="btn" href="#get">${cu.launch.cta}</a>` : `<a class="btn" href="${IG}" data-cta="custom" rel="noopener noreferrer">${svg}${cu.cta}</a>`
   const nav = c.nav.map(([h, t]) => `<a href="${h}">${t}</a>`).join('')
   const opts = c.chars.opts.map(([b, s], i) => `      <div class="opt"><span class="ic">${i + 1}</span><div><b>${b}</b><span>${s}</span></div></div>`).join('\n')
   const dirAttr = c.dir === 'rtl' ? ' dir="rtl"' : ' dir="ltr"'
@@ -353,7 +374,7 @@ function page(c) {
 <meta name="theme-color" content="#cfe0ea">
 <meta name="referrer" content="no-referrer">
 <title>${c.title}</title>
-<meta name="description" content="${c.desc}">
+<meta name="description" content="${launch ? c.descLaunch : c.desc}">
 <meta property="og:title" content="${c.ogTitle}">
 <meta property="og:description" content="${c.ogDesc}">
 <link rel="canonical" href="${c.canonical}">
@@ -382,7 +403,7 @@ ${c.altLinks}
       <a class="btn" href="${IG}" data-cta="hero" rel="noopener noreferrer">${svg}${c.cta}</a>
       <a class="btn ghost" href="#how">${c.ctaGhost}</a>
     </div>
-    <div class="stores"><span class="store">${c.stores[0]}</span><span class="store">${c.stores[1]}</span></div>
+    ${stores}
   </div>
   <div class="art">
     <div class="frame"><img src="img/race.webp" width="900" height="1200" alt="${c.heroAlt}" fetchpriority="high"></div>
@@ -466,12 +487,12 @@ ${opts}
 <section id="custom" class="custom"><div class="wrap">
   <div class="reveal">
     <p class="kicker">${c.custom.kicker}</p>
-    <h2>${c.custom.h2} <span class="soon">${c.custom.soon}</span></h2>
-    <p class="sub">${c.custom.sub}</p>
+    <h2>${customTitle}</h2>
+    <p class="sub">${customSub}</p>
     <span class="price">${c.custom.price}</span>
     <p class="sub">${c.custom.sub2}</p>
     <div class="facts-row">${c.custom.facts.map((x) => `<span>${x}</span>`).join('')}</div>
-    <div class="cta-row" style="margin-top:24px"><a class="btn" href="${IG}" data-cta="custom" rel="noopener noreferrer">${svg}${c.custom.cta}</a></div>
+    <div class="cta-row" style="margin-top:24px">${customCta}</div>
   </div>
   <div class="case reveal" aria-label="${c.custom.aria}">
     <figure><img src="img/othman-photo.webp" width="720" height="960" alt="${c.custom.photoAlt}" loading="lazy"><figcaption><a href="${IG_OTHMAN}" rel="noopener noreferrer" dir="ltr">@_othman_007_</a></figcaption></figure>
@@ -517,5 +538,11 @@ ${support}
 `
 }
 
-for (const c of Object.values(L)) writeFileSync(join(root, c.file), page(c))
-console.log('wrote index.html and en.html')
+/** both pages as { file: html } for one state (`launch` true = after the App Store release) */
+export function build(launch = LAUNCH) { return Object.fromEntries(Object.values(L).map((c) => [c.file, page(c, launch)])) }
+
+if (RUN) {
+  const launch = process.argv.includes('--launch') ? true : process.argv.includes('--before') ? false : LAUNCH
+  for (const [f, html] of Object.entries(build(launch))) writeFileSync(join(root, f), html)
+  console.log(`wrote index.html and en.html (${launch ? 'AFTER launch' : 'BEFORE launch'})`)
+}

@@ -18,19 +18,25 @@ const RUN = !!process.argv[1] && SELF === resolve(process.argv[1])
 
 // The maslahtak commit the published text is taken from. To re-pin: change this line, run `node scripts/gen-legal.mjs`, commit the four pages
 // (or run `node scripts/gen-legal.mjs --pin <sha>`, which does the first two steps).
-export const GAME_SHA = '26cfbf42619c1e5de4c3ce2fb7dcc8cb28ba89c7'
+export const GAME_SHA = 'c4f65af1944c3d88c1a681f42043ae17e60394bc'
 export const GAME_SHA_SHORT = GAME_SHA.slice(0, 9)
 export const GAME_TREE = process.env.SITE5_GAME_TREE || 'G:/Work Space/maslahtak2/worktrees/maslahtak-merge-meta'
 export const LEGAL_MD_PATH = 'docs/release/legal-site.md'
 export const COPY_PATH = 'src/game/copy.js'
+export const RULES_PATH = 'src/game/shared/accountRules.js'
 
 // The date shown on the pages («آخر تحديث» / «Updated:»): the day the text was published. The hand-written support and deletion pages carry the same date.
-export const UPDATED = { iso: '2026-10-18', ar: '18 أكتوبر 2026', en: '18 October 2026' }
+export const UPDATED = { iso: '2026-10-24', ar: '24 أكتوبر 2026', en: '24 October 2026' }
 const IG = 'https://www.instagram.com/maslaha_game'
 const PROVIDERS = {
   'cloud-prod.colyseus.io/privacy-policy': 'https://cloud-prod.colyseus.io/privacy-policy',
   'posthog.com/privacy': 'https://posthog.com/privacy',
   'revenuecat.com/privacy': 'https://www.revenuecat.com/privacy',
+  'sentry.io/privacy': 'https://sentry.io/privacy',
+  'capgo.app/privacy': 'https://capgo.app/privacy',
+  'cloudflare.com/privacypolicy': 'https://www.cloudflare.com/privacypolicy/',
+  'nover.studio/privacy': 'https://www.nover.studio/privacy',
+  'runware.ai/privacy-policy': 'https://runware.ai/privacy-policy',
   'docs.github.com/site-policy/privacy-policies/github-general-privacy-statement': 'https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement',
   'privacycenter.instagram.com/policy': 'https://privacycenter.instagram.com/policy',
 }
@@ -44,6 +50,8 @@ export function hasCommit(sha = GAME_SHA, tree = GAME_TREE) {
   try { execFileSync('git', ['-C', tree, 'cat-file', '-e', `${sha}^{commit}`], { stdio: 'pipe' }); return true } catch { return false }
 }
 export const gameFile = (path, sha = GAME_SHA, tree = GAME_TREE) => execFileSync('git', ['-C', tree, 'show', `${sha}:${path}`], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+/** the constants copy.js puts into the legal text (empty before 0.2.9, when the file did not exist) */
+export const rulesFile = (sha = GAME_SHA, tree = GAME_TREE) => { try { return gameFile(RULES_PATH, sha, tree) } catch { return '' } }
 /** a readable reason when the pinned commit cannot be read from the tree, or null */
 export function treeProblem(sha = GAME_SHA, tree = GAME_TREE) {
   if (treeKind(tree) === 'none') return `${tree} is not a git checkout of the game repo (set SITE5_GAME_TREE to a worktree or clone of maslahtak)`
@@ -79,6 +87,8 @@ function readQuoted(src, at, facts) {
     if (q === '`' && c === '$' && src[i + 1] === '{') {
       const close = src.indexOf('}', i); const expr = src.slice(i + 2, close).trim()
       const m = /^LEGAL_FACTS\.(name|email|instagram)$/.exec(expr)
+      // 0.2.9 (ACCOUNT-COPY · UX-COPY): copy.js imports two numbers from src/game/shared/accountRules.js (RECOVERY_CODE_DAYS · FRIENDS_RETENTION_DAYS) — read at the same pinned commit
+      if (!m && facts.consts && Object.hasOwn(facts.consts, expr)) { out += facts.consts[expr]; i = close; continue }
       if (!m) throw new Error('copy.js: the legal text uses a template expression the cross-check does not know: ${' + expr + '}')
       out += facts[m[1]]; i = close; continue
     }
@@ -101,10 +111,10 @@ function arrayStrings(src, at, facts) {
   throw new Error('copy.js: the legal text array does not end')
 }
 /** `{ updatedAt, contact, policy: string[], terms: string[] }` from the source of src/game/copy.js (TEXT.legal) */
-export function parseCopyLegal(src) {
+export function parseCopyLegal(src, rulesSrc = '') {
   const fb = /export const LEGAL_FACTS = Object\.freeze\(\{([\s\S]*?)\}\)/.exec(src)
   if (!fb) throw new Error('copy.js has no LEGAL_FACTS')
-  const facts = {}
+  const facts = { consts: Object.fromEntries([...rulesSrc.matchAll(/^export const ([A-Z][A-Z0-9_]*) = (\d+)\s*$/gm)].map((m) => [m[1], m[2]])) }
   for (const k of ['name', 'email', 'instagram']) { const m = new RegExp('\\b' + k + ": '([^']*)'").exec(fb[1]); if (!m) throw new Error('copy.js: LEGAL_FACTS.' + k + ' not found'); facts[k] = m[1] }
   const at = src.search(/^  legal: \{$/m)
   if (at < 0) throw new Error('copy.js has no TEXT.legal block')
@@ -124,10 +134,10 @@ const norm = (t) => t.replace(/\s+/g, ' ').trim()
  * check-legal6 pins (`md.includes(body)`): the site must never show OLDER text than the app. `extra` lists sections where legal-site.md says MORE than copy.js
  * (at 9707294c7: the «الاحترام» terms section carries the one-day automatic lock sentence that the in-app text lacks): a note, not a failure.
  */
-export function crossCheckCopy(mdText, md, copySrc) {
+export function crossCheckCopy(mdText, md, copySrc, rulesSrc = '') {
   const bad = []; const extra = []
   let copy
-  try { copy = parseCopyLegal(copySrc) } catch (e) { return { bad: [e.message], extra } }
+  try { copy = parseCopyLegal(copySrc, rulesSrc) } catch (e) { return { bad: [e.message], extra } }
   const dates = [...mdText.matchAll(/^آخر تحديث:.*$/gm)].map((m) => norm(m[0]))
   if (!dates.length || dates.some((d) => d !== norm(copy.updatedAt))) bad.push(`the «آخر تحديث» line of legal-site.md (${dates.join(' / ') || 'none'}) differs from updatedAt in copy.js (${norm(copy.updatedAt)})`)
   for (const [kind, arr] of [['privacy', [...copy.policy, copy.contact]], ['terms', [...copy.terms, copy.contact]]]) {
@@ -221,7 +231,7 @@ export function generate(quiet = false) {
   if (problem) throw new Error(problem)
   const mdText = gameFile(LEGAL_MD_PATH)
   const { privacy, terms } = parseLegalMd(mdText)
-  const { bad, extra } = crossCheckCopy(mdText, { privacy, terms }, gameFile(COPY_PATH))
+  const { bad, extra } = crossCheckCopy(mdText, { privacy, terms }, gameFile(COPY_PATH), rulesFile())
   if (bad.length) throw new Error(`legal-site.md and src/game/copy.js disagree at ${GAME_SHA_SHORT}:\n  ` + bad.join('\n  '))
   if (!quiet) for (const e of extra) console.log('note: ' + e)
   if (privacy.length !== PRIVACY_EN.length || terms.length !== TERMS_EN.length) throw new Error(`legal-site.md has ${privacy.length}/${terms.length} sections, legal-en.mjs has ${PRIVACY_EN.length}/${TERMS_EN.length}: update the English text too`)

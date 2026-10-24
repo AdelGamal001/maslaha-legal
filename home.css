@@ -67,6 +67,8 @@ h1 .ar{display:block;font-size:.62em;color:var(--stamp);letter-spacing:0;margin-
 .lead{color:var(--ink-soft);max-width:46ch;margin:0 0 26px}
 .stores{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
 .store{display:flex;align-items:center;gap:8px;border:2.5px dashed var(--ink-soft);border-radius:12px;padding:6px 14px;font-weight:700;font-size:14px;color:var(--ink-soft)}
+.stores{align-items:center}
+.stores .get-h{flex:0 0 100%;font-size:18px;font-weight:800}
 
 /* falling cream sheets, always behind the text and the frame */
 .papers{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
