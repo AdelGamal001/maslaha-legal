@@ -18,7 +18,7 @@ const RUN = !!process.argv[1] && SELF === resolve(process.argv[1])
 
 // The maslahtak commit the published text is taken from. To re-pin: change this line, run `node scripts/gen-legal.mjs`, commit the four pages
 // (or run `node scripts/gen-legal.mjs --pin <sha>`, which does the first two steps).
-export const GAME_SHA = 'c4f65af1944c3d88c1a681f42043ae17e60394bc'
+export const GAME_SHA = '45d5c49473cb0be882162b070991005e3cd0b233'
 export const GAME_SHA_SHORT = GAME_SHA.slice(0, 9)
 export const GAME_TREE = process.env.SITE5_GAME_TREE || 'G:/Work Space/maslahtak2/worktrees/maslahtak-merge-meta'
 export const LEGAL_MD_PATH = 'docs/release/legal-site.md'
@@ -26,7 +26,7 @@ export const COPY_PATH = 'src/game/copy.js'
 export const RULES_PATH = 'src/game/shared/accountRules.js'
 
 // The date shown on the pages («آخر تحديث» / «Updated:»): the day the text was published. The hand-written support and deletion pages carry the same date.
-export const UPDATED = { iso: '2026-10-24', ar: '24 أكتوبر 2026', en: '24 October 2026' }
+export const UPDATED = { iso: '2026-10-28', ar: '28 أكتوبر 2026', en: '28 October 2026' }
 const IG = 'https://www.instagram.com/maslaha_game'
 const PROVIDERS = {
   'cloud-prod.colyseus.io/privacy-policy': 'https://cloud-prod.colyseus.io/privacy-policy',
