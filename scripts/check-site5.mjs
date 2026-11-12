@@ -10,7 +10,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync, mkdirSync } from 'node:fs'
 import { dirname, extname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { parseLegalMd, UPDATED, GAME_SHA, GAME_SHA_SHORT, GAME_TREE, LEGAL_MD_PATH, COPY_PATH, treeKind, hasCommit, gameFile, rulesFile, crossCheckCopy, generate } from './gen-legal.mjs'
+import { parseLegalMd, UPDATED, TEXT_DATE, GAME_SHA, GAME_SHA_SHORT, GAME_TREE, LEGAL_MD_PATH, COPY_PATH, treeKind, hasCommit, gameFile, rulesFile, crossCheckCopy, generate } from './gen-legal.mjs'
 import { SITE_SECTIONS, PRIVACY_EN, TERMS_EN } from './legal-en.mjs'
 import { LAUNCH, PLAY, PLAY_STORE, ROOM_AR, build as buildHome } from './gen-pages.mjs'
 
@@ -272,6 +272,10 @@ for (const f of ['privacy.html', 'terms.html', 'privacy-en.html', 'terms-en.html
   const label = /-en\.html$/.test(f) ? 'Text version:' : 'نسخة النص:'; const foot = footerOf(legalHtml[f])
   const m = new RegExp(`<p class="src">${label} <bdi dir="ltr">([0-9a-f]+)</bdi></p>`).exec(foot)
   ok(!!m && m[1] === GAME_SHA_SHORT && GAME_SHA.startsWith(m[1]) && plain(foot).endsWith(`${label} ${GAME_SHA_SHORT}`), `${f}: the footer says «${label} ${GAME_SHA_SHORT}» and that sha is the pinned GAME_SHA`)
+  { // SITE-STORE-BUTTONS (12/11): the footer also says the date of the game text itself, which is not the website's date at the top of the page
+    const en = /-en\.html$/.test(f); const dl = en ? 'Game text dated:' : 'تاريخ نص اللعبة:'
+    ok(foot.includes(`<p class="src">${dl} <time datetime="${TEXT_DATE.iso}"${en ? ' dir="ltr"' : ''}>${TEXT_DATE[en ? 'en' : 'ar']}</time></p>`), `${f}: the footer says «${dl} ${TEXT_DATE[en ? 'en' : 'ar']}» (the date inside the game text at ${GAME_SHA_SHORT})`)
+  }
 }
 const treeKindNow = treeKind(GAME)
 let pin = null
@@ -294,9 +298,11 @@ if (pin) {
   const cc = crossCheckCopy(pin.mdText, pin.md, pin.copy, rulesFile())
   ok(cc.bad.length === 0, `legal-site.md and src/game/copy.js agree at ${GAME_SHA_SHORT}: the date, ${pin.md.privacy.length} privacy and ${pin.md.terms.length} terms sections, every in-app paragraph found in legal-site.md` + (cc.bad.length ? ': ' + cc.bad.join('; ') : ''))
   for (const e of cc.extra) warn('legal-site.md says more than the in-app text: ' + e)
-  // مشكك A بند 7: one date — the date inside the game text (TEXT.legal.updatedAt, legal-site.md) is the date the site shows on every page (UPDATED in gen-legal.mjs)
+  // مشكك A بند 7, reworded 12/11 (SITE-STORE-BUTTONS): the date inside the game text (TEXT.legal.updatedAt, legal-site.md) is TEXT_DATE in gen-legal.mjs, the date the four generated pages say in their footer.
+  // The date at the top of every page (UPDATED) is the website's own: the day it was published, never before TEXT_DATE.
   const dateLines = [...pin.mdText.matchAll(/^آخر تحديث:.*$/gm)].map((m) => m[0].trim())
-  ok(pin.copy.includes(`updatedAt: 'آخر تحديث: ${UPDATED.ar}'`) && dateLines.length === 2 && dateLines.every((l) => l === `آخر تحديث: ${UPDATED.ar}`), `the date is one date: updatedAt in the in-app text at ${GAME_SHA_SHORT} and both date lines of legal-site.md say «${UPDATED.ar}», the same as UPDATED in gen-legal.mjs (what the pages show)`)
+  ok(pin.copy.includes(`updatedAt: 'آخر تحديث: ${TEXT_DATE.ar}'`) && dateLines.length === 2 && dateLines.every((l) => l === `آخر تحديث: ${TEXT_DATE.ar}`), `the date of the game text is one date: updatedAt in the in-app text at ${GAME_SHA_SHORT} and both date lines of legal-site.md say «${TEXT_DATE.ar}», the same as TEXT_DATE in gen-legal.mjs (what the footers show)`)
+  ok(/^\d{4}-\d{2}-\d{2}$/.test(UPDATED.iso) && /^\d{4}-\d{2}-\d{2}$/.test(TEXT_DATE.iso) && UPDATED.iso >= TEXT_DATE.iso, `the website's date (${UPDATED.iso}) is not before the date of the game text (${TEXT_DATE.iso})`)
 }
 { // the English pages: PRIVACY_EN / TERMS_EN, then the same site-only sections; the section counts follow the pinned Arabic text
   const pe = sectionsOf(legalHtml['privacy-en.html']); const te = sectionsOf(legalHtml['terms-en.html'])
@@ -315,6 +321,7 @@ for (const [f, list] of [['privacy.html', SITE_AR_LIST], ['privacy-en.html', SIT
   const sec = (f, id) => (sectionsOf(legalHtml[f]).find((x) => x.id === id) || { p: '' }).p
   const [bAr, bEn, rAr, rEn, dAr, dEn] = [sec('privacy.html', 'backup'), sec('privacy-en.html', 'backup'), sec('privacy.html', 'rooms'), sec('privacy-en.html', 'rooms'), sec('privacy.html', 'support-dm'), sec('privacy-en.html', 'support-dm')]
   ok(/30 يوم/.test(bAr) && /30 days/.test(bEn) && /AES-256/.test(bAr + bEn) && /GitHub/.test(bAr) && /GitHub/.test(bEn) && /3:10/.test(bAr) && /3:10/.test(bEn) && /كل بيانات اللاعيبة اللي بيخزّنها \(مش تقارير الأعطال\)/.test(bAr) && /all the player data it stores \(not the crash reports\)/.test(bEn) && /والحظر والأسامي المحجوبة وأرقام التشغيل اليومية وسجل الإدارة/.test(bAr) && /bans, blocked names, daily operating numbers, the admin log/.test(bEn) && /كل 6 ساعات/.test(bAr) && /Every 6 hours/.test(bEn) && /طلبات «اعمل شخصيتك» وفيها إيميل المشتري/.test(bAr) && /orders with the buyer’s email/.test(bEn), 'backup section (both languages): every 6 hours from 3:10 Cairo time, all the player data except crash reports (bans, the admin log and the «اعمل شخصيتك» orders with the buyer’s email included), AES-256, a private GitHub repository, the newest 30 days')
+  ok(/وسجل المشتريات والهدايا و«سجل الماتشات» والأصحاب/.test(bAr) && /the purchase log, gifts, the “Match log”, friends/.test(bEn), 'backup section (both languages): the list of what is copied names the «سجل الماتشات» / “Match log” (SITE-STORE-BUTTONS 12/11: it sits in the same database as the accounts)')
   ok(/docs\.github\.com\/site-policy\/privacy-policies\/github-general-privacy-statement/.test(bAr) && /docs\.github\.com\/site-policy\/privacy-policies\/github-general-privacy-statement/.test(bEn) && /وهو مزوّد للنسخ دي بس/.test(bAr) && /It is a provider for these backups only/.test(bEn) && !/مزوّد سادس|sixth provider/.test(bAr + bEn), 'backup section: GitHub is named as the provider of the backups only (no count), with its privacy statement')
   ok(/بتفضل في آخر نسخ المخزن لحد 30 يوم/.test(bAr) && /وبتفضل في تاريخ المخزن 90 يوم بالكتير/.test(bAr) && /صاحب اللعبة بينضّف التاريخ ده مرة كل شهر، ومحدش يفتحها من غير المفتاح/.test(bAr) && /والاسترجاع على السيرفر الحالي بيعيد تطبيق سجل المسح، فالحساب اللي سجّلنا مسحه مابيرجعش/.test(bAr) && /stays in the latest backups for up to 30 days, and in the repository’s history for 90 days at most/.test(bEn) && /The owner cleans that history once a month, and it cannot be opened without the key/.test(bEn) && /A restore on the current server replays our deletion log, so an account we recorded as deleted does not come back/.test(bEn), 'backup section (both languages): the newest copies stay up to 30 days, the repository history 90 days at most, the owner cleans it once a month, unreadable without the key, and a restore replays the deletions so a deleted account does not come back')
   ok(/ولازم يكتب السبب/.test(rAr) && /وعدد اللاعيبة والسبب/.test(rAr) && /must type a reason/.test(rEn) && /number of players and the reason/.test(rEn) && /12 حرف/.test(rAr) && /12 characters/.test(rEn) && /5 ثواني/.test(rAr) && /5 seconds/.test(rEn) && /مابتخزّنهاش/.test(rAr) && /not stored/.test(rEn), 'rooms section (both languages): a reason must be typed and is logged, the first 12 characters of a player number, refreshed every 5 seconds, the view is not stored')
@@ -348,6 +355,7 @@ for (const [f, list] of [['privacy.html', SITE_AR_LIST], ['privacy-en.html', SIT
     const poll = got('server/admin-web/js/tabs/rooms.js', /setInterval\(\(\) => (?:\{ if \(!document\.hidden\) )?load\(false\)(?: \})?, (\d+)\)/); const slice = got('server/src/admin/routes/rooms.ts', /player: p\.playerId\.slice\(0, (\d+)\)/); const aud = got('server/src/admin/audit.ts', /AUDIT_KEEP_MS = (\d+) \* 86_400_000/)
     ok(!!keep && +keep[1] === 30 && /30 يوم/.test(bAr) && /30 days/.test(bEn) && /لحد 30 يوم بعد المسح/.test(legalHtml['account-deletion.html']) && /up to 30 days after deletion/.test(legalHtml['account-deletion-en.html']), `backup keep: BACKUP_KEEP defaults to ${keep ? keep[1] : '?'} in server/src/backup/run.ts at ${GAME_SHA_SHORT}, the privacy and deletion pages (both languages) say 30 يوم / 30 days`)
     ok(!!at && /3:10/.test(bAr) && at[1].replace(/^0/, '') === '3:10' && !!every && +every[1] === 6 && /كل 6 ساعات/.test(bAr) && /Every 6 hours/.test(bEn), `backup time: BACKUP_AT defaults to ${at ? at[1] : '?'} (Cairo) and BACKUP_EVERY_HOURS to ${every ? every[1] : '?'} in server/src/config.ts, the pages say from 3:10 and every 6 hours`)
+    { const schema = pin.at('server/src/store/schema.ts'); ok(/^CREATE TABLE accounts \(/m.test(schema) && /^CREATE TABLE stat_matches \(/m.test(schema) && /^CREATE TABLE stat_seats \(/m.test(schema), `backup: the match log tables (stat_matches, stat_seats) are in the same database as the accounts in server/src/store/schema.ts at ${GAME_SHA_SHORT}, so the backup that copies the database copies them: the pages name the «سجل الماتشات»`) }
     ok(/aes-256-gcm/i.test(pin.at('server/src/backup/crypt.ts')) && /maslaha-backups/.test(pin.at('server/src/backup/run.ts')), 'backup: crypt.ts is AES-256-GCM and run.ts defaults to a repository named maslaha-backups (private per docs/backend/backup.md)')
     ok(!!poll && +poll[1] === 5000 && !!slice && +slice[1] === 12 && !!aud && +aud[1] === 365, `rooms: the dashboard polls every ${poll ? poll[1] : '?'} ms, a removal logs the first ${slice ? slice[1] : '?'} characters of the player id, the audit is kept ${aud ? aud[1] : '?'} days: the pages say 5 seconds, 12 characters, one year`)
   }

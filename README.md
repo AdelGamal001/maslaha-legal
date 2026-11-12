@@ -84,6 +84,17 @@ Do not replace the current copy with outdated source paragraphs.
 
 ## Changes
 
+### 12/11/2026 — Re-pin to the public 0.2.11 text (branch site-store-buttons)
+
+| What | Detail |
+|---|---|
+| Pinned | `GAME_SHA = 70827d9f82c06a4acded853ebacfd3b65fd47e79` (`70827d9f8`, `release: version 0.2.11`), done with `node scripts/gen-legal.mjs --pin 70827d9f8`. |
+| Two dates | `TEXT_DATE` = 1 November 2026, the date inside the game text at the pin; the four generated pages say it in their footer («تاريخ نص اللعبة:» / “Game text dated:”). `UPDATED` = the date at the top of all eight pages: the day the website is published (the constant in `gen-legal.mjs`). To set it: `node scripts/gen-legal.mjs --updated YYYY-MM-DD` (it writes the constant and the four hand-written pages, then regenerates). `check-site5` pins `TEXT_DATE` to the game and `UPDATED` to all eight pages, never before `TEXT_DATE`. |
+| Arabic text that moved (vs `45d5c4947`) | Privacy only, five sections: «الأوض الأونلاين» and «استميشن مع صحابك» say «حركتك خطوة بخطوة»; «سجل الماتشات» names the «عندي 13 سنة أو أكتر» flag; «الشراء بفلوس حقيقية» says the server also keeps Lahlouh purchases and «هدية الجيل الأول»; «الأطفال» says the phone sends that flag to the server. The terms did not move. |
+| English text (`legal-en.mjs`) | The same five sections follow, sentence for sentence. |
+| Backup section (site-only) | Both languages now name the «سجل الماتشات» / “Match log” in the list of what is copied. A new pin reads `server/src/store/schema.ts` at the pinned commit: the match log tables are in the same database as the accounts. |
+| Next | The re-pin for the next public version, in one publish with the room word and, if Google Play is Live by then, its button. |
+
 ### 12/11/2026 — SITE-STORE-BUTTONS: the home page links to the App Store (branch site-store-buttons)
 
 The iOS game went public on 8/11 and the home page still said «اللعبة جاية قريب» with both store names as plain text.

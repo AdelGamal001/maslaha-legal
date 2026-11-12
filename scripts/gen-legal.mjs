@@ -18,15 +18,19 @@ const RUN = !!process.argv[1] && SELF === resolve(process.argv[1])
 
 // The maslahtak commit the published text is taken from. To re-pin: change this line, run `node scripts/gen-legal.mjs`, commit the four pages
 // (or run `node scripts/gen-legal.mjs --pin <sha>`, which does the first two steps).
-export const GAME_SHA = '45d5c49473cb0be882162b070991005e3cd0b233'
+export const GAME_SHA = '70827d9f82c06a4acded853ebacfd3b65fd47e79'
 export const GAME_SHA_SHORT = GAME_SHA.slice(0, 9)
 export const GAME_TREE = process.env.SITE5_GAME_TREE || 'G:/Work Space/maslahtak2/worktrees/maslahtak-merge-meta'
 export const LEGAL_MD_PATH = 'docs/release/legal-site.md'
 export const COPY_PATH = 'src/game/copy.js'
 export const RULES_PATH = 'src/game/shared/accountRules.js'
 
-// The date shown on the pages («آخر تحديث» / «Updated:»): the day the text was published. The hand-written support and deletion pages carry the same date.
-export const UPDATED = { iso: '2026-10-28', ar: '28 أكتوبر 2026', en: '28 October 2026' }
+// SITE-STORE-BUTTONS (12/11): two dates, because the website can change on a day the game's text did not (a site-only section, a re-pin).
+// TEXT_DATE = the date INSIDE the game text at GAME_SHA (`updatedAt` in copy.js = both date lines of legal-site.md). check-site5 pins it to the game. The four generated pages say it in their footer.
+export const TEXT_DATE = { iso: '2026-11-01', ar: '1 نوفمبر 2026', en: '1 November 2026' }
+// UPDATED = the date at the top of all eight pages («آخر تحديث» / «Updated:»): the day the website itself was last published. Never before TEXT_DATE. The hand-written support and
+// deletion pages carry the same date. `node scripts/gen-legal.mjs --updated YYYY-MM-DD` writes it here and in those four pages, then regenerates.
+export const UPDATED = { iso: '2026-11-12', ar: '12 نوفمبر 2026', en: '12 November 2026' }
 const IG = 'https://www.instagram.com/maslaha_game'
 const PROVIDERS = {
   'cloud-prod.colyseus.io/privacy-policy': 'https://cloud-prod.colyseus.io/privacy-policy',
@@ -168,12 +172,12 @@ const sectionHtml = ({ h, p, id }) => `<section${id ? ` id="${id}"` : ''}><h2>${
 
 const PAGE = {
   ar: {
-    lang: 'ar', dir: 'rtl', home: 'index.html', skip: 'روح للمحتوى', navLabel: 'صفحات الموقع', eyebrow: 'معلومات اللعبة', updated: 'آخر تحديث:', version: 'نسخة النص:',
+    lang: 'ar', dir: 'rtl', home: 'index.html', skip: 'روح للمحتوى', navLabel: 'صفحات الموقع', eyebrow: 'معلومات اللعبة', updated: 'آخر تحديث:', textDate: 'تاريخ نص اللعبة:', version: 'نسخة النص:',
     other: { text: 'English', lang: 'en', dir: 'ltr' }, nav: ['الرئيسية', 'الخصوصية', 'الشروط', 'الدعم', 'حذف البيانات'], brand: 'قعدة مصلحة',
     footer: 'قعدة مصلحة · معلومات واضحة عن اللعب وبياناتك.', related: [['account-deletion.html', 'حذف البيانات'], ['support.html', 'الدعم']],
   },
   en: {
-    lang: 'en', dir: 'ltr', home: 'en.html', skip: 'Skip to content', navLabel: 'Site pages', eyebrow: 'Game information', updated: 'Updated:', version: 'Text version:',
+    lang: 'en', dir: 'ltr', home: 'en.html', skip: 'Skip to content', navLabel: 'Site pages', eyebrow: 'Game information', updated: 'Updated:', textDate: 'Game text dated:', version: 'Text version:',
     other: { text: 'العربي', lang: 'ar', dir: 'rtl' }, nav: ['Home', 'Privacy', 'Terms', 'Support', 'Data deletion'], brand: 'Qaadet Maslaha',
     footer: 'Qaadet Maslaha · Clear information about playing and your data.', related: [['account-deletion-en.html', 'Data deletion'], ['support-en.html', 'Support']],
   },
@@ -218,7 +222,7 @@ function page(kind, lang, sections, withRelated) {
 <p class="updated">${L.updated} ${date}</p>
 ${sections.map(sectionHtml).join('\n')}
 ${withRelated ? `<p class="related">${L.related.map(([h, x]) => `<a href="${h}">${x}</a>`).join(' · ')}</p>\n` : ''}</main>
-<footer><p>${L.footer}</p><p class="src">${L.version} <bdi dir="ltr">${GAME_SHA_SHORT}</bdi></p></footer>
+<footer><p>${L.footer}</p><p class="src">${L.textDate} <time datetime="${TEXT_DATE.iso}"${lang === 'en' ? ' dir="ltr"' : ''}>${TEXT_DATE[lang]}</time></p><p class="src">${L.version} <bdi dir="ltr">${GAME_SHA_SHORT}</bdi></p></footer>
 </div>
 </body>
 </html>
@@ -247,6 +251,30 @@ export function generate(quiet = false) {
 }
 
 if (RUN) {
+  const u = process.argv.indexOf('--updated')
+  if (u >= 0) { // the website's own date: this file's UPDATED line and the date line of the four hand-written pages, then the four generated pages
+    const iso = process.argv[u + 1] || ''
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso)
+    const d = m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])) : null
+    if (!d || d.toISOString().slice(0, 10) !== iso) throw new Error('--updated needs a real date: node scripts/gen-legal.mjs --updated 2026-11-13')
+    if (iso < TEXT_DATE.iso) throw new Error(`--updated ${iso} is before the date of the game text (${TEXT_DATE.iso})`)
+    const AR = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر']
+    const EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    const next = { iso, ar: `${+m[3]} ${AR[+m[2] - 1]} ${m[1]}`, en: `${+m[3]} ${EN[+m[2] - 1]} ${m[1]}` }
+    const src = readFileSync(SELF, 'utf8')
+    const line = /^export const UPDATED = \{ iso: '[^']*', ar: '[^']*', en: '[^']*' \}$/m
+    if (!line.test(src)) throw new Error('the UPDATED line was not found in gen-legal.mjs')
+    writeFileSync(SELF, src.replace(line, () => `export const UPDATED = { iso: '${next.iso}', ar: '${next.ar}', en: '${next.en}' }`))
+    for (const [f, lang] of [['support.html', 'ar'], ['account-deletion.html', 'ar'], ['support-en.html', 'en'], ['account-deletion-en.html', 'en']]) {
+      const p = join(root, f)
+      const t = readFileSync(p, 'utf8')
+      const re = /(<p class="updated">[^<]*<time datetime=")[^"]*("(?: dir="ltr")?>)[^<]*(<\/time><\/p>)/
+      if ((t.match(new RegExp(re.source, 'g')) || []).length !== 1) throw new Error(`${f}: the date line was not found once`)
+      writeFileSync(p, t.replace(re, (_, a, b, c) => `${a}${next.iso}${b}${next[lang]}${c}`))
+    }
+    console.log(`the website's date is now ${next.iso} (this file and the four hand-written pages)`)
+    process.exit(spawnSync(process.execPath, [SELF], { stdio: 'inherit' }).status ?? 1) // a fresh process reads the new constant
+  }
   const i = process.argv.indexOf('--pin')
   if (i >= 0) {
     const want = process.argv[i + 1]
