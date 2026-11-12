@@ -14,12 +14,22 @@ const RUN = !!process.argv[1] && SELF === resolve(process.argv[1])
 // «قريب على iOS وأندرويد» and the «شخصيتك بوشّك» block keeps its «قريب» badge. true = AFTER launch (runbook step 14/7, once Apple released the version and the App Store link opens): the App Store button,
 // «على Google Play قريب» as plain text, the meta «على iPhone دلوقتي، وأندرويد قريب», and «شخصيتك بوشّك» without «قريب» (the product is on sale in the iOS store) that sends the visitor to the store button, not to Instagram.
 // `maslaha-legal.patch` is the BEFORE state; `maslaha-legal-launch.patch` flips this line and rewrites index.html + en.html on top of it. check-site5 pins both states through build().
-export const LAUNCH = false
+// SITE-STORE-BUTTONS (12/11): true since the iOS release went public (8/11).
+export const LAUNCH = true
 // ?v=<content hash> so a visitor never pairs new HTML with a cached old home.css/home.js (Pages caches 10 min)
 const ver = (f) => createHash('sha1').update(readFileSync(join(root, f))).digest('hex').slice(0, 8)
 const IG = 'https://www.instagram.com/maslaha_game'
 // STORE-TEXT (24/10 · LOCAL item 10): the one way to get the game on the home page. The id is APP_STORE_URL in the game repo (src/app/links.js); Google Play stays plain text (no link) until production access
-const APP_STORE = 'https://apps.apple.com/app/id6815344684'
+// SITE-STORE-BUTTONS (12/11): the address names the Egyptian storefront. The address without a country answered 404 in a browser that day (it falls to a storefront
+// that does not list the game); this one loads everywhere, and on an iPhone the App Store opens the game where the visitor's own store has it.
+const APP_STORE = 'https://apps.apple.com/eg/app/id6815344684'
+// SITE-STORE-BUTTONS (12/11): Google Play. false = «على Google Play قريب» as plain text, because a link to a listing that is not Live answers 404. true = a second text button to the listing, and the meta names both phones.
+// Flip it only on the day Play Console shows the production release as Live, then run this script and check-site5. The id is PLAY_STORE_URL in the game repo (src/app/links.js).
+export const PLAY = false
+export const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.adelgamal.qaadetmaslaha'
+// SITE-STORE-BUTTONS (12/11): the game's word for a room on the Arabic page (three strings below). The legal text of the public game (0.2.11) says «أوضة».
+// The word changes only together with a legal re-pin, so the site and the game text change their word on the same day.
+export const ROOM_AR = 'أوضة'
 const IG_OTHMAN = 'https://www.instagram.com/_othman_007_'
 const IG_ADEL = 'https://www.instagram.com/adelgamal001'
 // the game server's public counts (server/src/stats.ts: { rooms, players, at }); the page asks it once a minute
@@ -39,6 +49,7 @@ const L = {
     title: 'قعدة مصلحة | لعبة بارتي مجانية عن ورق المصالح',
     desc: 'اتسابق مع صحابك تخلّص ورقك في المصلحة. وكمان استميشن، لعبة ورق شرق أوسطية. مجانية، من غير إعلانات، ومفيش ادفع عشان تكسب. قريب على iOS وأندرويد.',
     descLaunch: 'اتسابق مع صحابك تخلّص ورقك في المصلحة. وكمان استميشن، لعبة ورق شرق أوسطية. مجانية، من غير إعلانات، ومفيش ادفع عشان تكسب. على iPhone دلوقتي، وأندرويد قريب.',
+    descPlay: 'اتسابق مع صحابك تخلّص ورقك في المصلحة. وكمان استميشن، لعبة ورق شرق أوسطية. مجانية، من غير إعلانات، ومفيش ادفع عشان تكسب. على iPhone وأندرويد.',
     ogDesc: 'المكاتب قليلة. والناس كتير. والكل محتاج ختم. مجانية ومن غير إعلانات.',
     canonical: 'https://maslahagame.com/', ogTitle: 'قعدة مصلحة', fonts: ['baloo-arabic', 'lalezar-arabic', 'baloo-latin'],
     altLinks: '<link rel="alternate" hreflang="en" href="en.html">\n<link rel="alternate" hreflang="ar" href="index.html">',
@@ -46,12 +57,12 @@ const L = {
     nav: [['#how', 'بتتلعب إزاي'], ['#estimation', 'استميشن'], ['#ways', 'اكسب بطريقتك'], ['#play', 'تابعنا']],
     langLink: '<a class="lang" href="en.html" lang="en" hreflang="en">English</a>',
     h1sub: '<span class="ar" lang="en" dir="ltr">Qaadet Maslaha</span>',
-    eyebrow: 'لعبة بارتي مجانية · من غير إعلانات · الأوضة ببلاش لحد 3، وكبير الشلة لحد 8',
+    eyebrow: `لعبة بارتي مجانية · من غير إعلانات · ال${ROOM_AR} ببلاش لحد 3، وكبير الشلة لحد 8`,
     tag: 'المكاتب قليلة. والناس كتير. والكل محتاج ختم.',
     lead: 'اتسابق مع صحابك تخلّص ورقك في مصلحة كلها طوابير وموظفين متنرفزين. والكسبان صاحب أعلى نقط، مش أول واحد يخلّص.',
     heroAlt: 'تلات لاعيبة بينطّوا على مكتب الموظف وفي إيدهم أختام',
     cta: 'تابعنا على إنستجرام عشان الجديد', ctaGhost: 'شوف بتتلعب إزاي',
-    get: { h: 'نزّل اللعبة', ios: 'نزّلها من App Store', play: 'على Google Play قريب', hSoon: 'اللعبة جاية قريب', iosSoon: 'على App Store', playSoon: 'على Google Play' },
+    get: { h: 'نزّل اللعبة', ios: 'نزّلها من App Store', play: 'على Google Play قريب', playLive: 'نزّلها من Google Play', hSoon: 'اللعبة جاية قريب', iosSoon: 'على App Store', playSoon: 'على Google Play' },
     ticketSmall: 'رقمك', ticketNow: 'الدور على', stamp: 'مقبول؟',
     board: [
       'فتحي المقص بيبطّأ اللي حواليه', 'عبد الرحمن بيغرّقك استيكرات ونصايح', 'الحج ثلعوه بيجري ورا أقرب واحد',
@@ -85,7 +96,7 @@ const L = {
       kicker: 'الخطوات', h2: 'بتتلعب إزاي؟', sub: 'ست خطوات، من أول ما تقعد لحد ما تعرف مين كسب.',
       steps: [
         { img: 'step-room', alt: 'لاعب داخل المصلحة ماسك ملفه وقدامه زحمة', h: 'اقعد القعدة',
-          p: 'اعمل أوضة وابعت الكود لصحابك، أو ضيف بوتات. ولو حد فصل، بوت بياخد مكانه لحد ما يرجع.',
+          p: `اعمل ${ROOM_AR} وابعت الكود لصحابك، أو ضيف بوتات. ولو حد فصل، بوت بياخد مكانه لحد ما يرجع.`,
           chips: ['كود من 4 حروف', 'ببلاش لحد 3، وكبير الشلة لحد 8', 'ماتش قصير أو طويل'], ok: 'تمام' },
         { img: 'step-chars', alt: 'تلات شخصيات: جزار وطيار دليفري ورجل أعمال', h: 'اختار شخصيتك',
           p: 'كل شخصية ليها 13 نقطة على أربع صفات: قوة وسرعة وذكاء وشياكة. ومعاها قدرة واحدة بتكسر قاعدة.',
@@ -104,7 +115,7 @@ const L = {
           chips: ['النقط بتحسم', 'إفادة رسمية', '3 أوسمة'], ok: 'كسبت' },
       ],
       w: {
-        code: 'كود الأوضة', roomCode: ['M', 'A', 'S', '7'],
+        code: `كود ال${ROOM_AR}`, roomCode: ['M', 'A', 'S', '7'],
         char: 'حمادة الجزار · 13 نقطة', st: ['قوة', 'سرعة', 'ذكاء', 'شياكة'],
         bars: ['طاقة', 'صبر'],
         mood: 'مزاج الموظف', moods: ['رايق', 'فايق', 'زهقان', 'متنرفز', 'غضبان جداً'],
@@ -174,6 +185,7 @@ const L = {
     title: 'Qaadet Maslaha | A free party game about Egyptian paperwork',
     desc: 'Race your friends through Egyptian paperwork. Plus Estimation, a Middle Eastern card game. Free, no ads, no pay-to-win. Coming to iOS and Android.',
     descLaunch: 'Race your friends through Egyptian paperwork. Plus Estimation, a Middle Eastern card game. Free, no ads, no pay-to-win. Now on iPhone, coming soon to Android.',
+    descPlay: 'Race your friends through Egyptian paperwork. Plus Estimation, a Middle Eastern card game. Free, no ads, no pay-to-win. On iPhone and Android.',
     ogDesc: 'Too few desks. Too many people. Everyone needs a stamp. Free, no ads, no pay-to-win.',
     canonical: 'https://maslahagame.com/en.html', ogTitle: 'Qaadet Maslaha', fonts: ['baloo-latin', 'lalezar-arabic', 'baloo-arabic'],
     altLinks: '<link rel="alternate" hreflang="ar" href="index.html">\n<link rel="alternate" hreflang="en" href="en.html">',
@@ -186,7 +198,7 @@ const L = {
     lead: 'Race your friends to get your papers stamped in an office full of queues and grumpy clerks. The winner has the most points, not the first one out.',
     heroAlt: 'Three players dive toward a clerk’s desk, rubber stamps in hand',
     cta: 'Follow us on Instagram for what’s new', ctaGhost: 'See how it plays',
-    get: { h: 'Get the game', ios: 'Get it on the App Store', play: 'Coming soon to Google Play', hSoon: 'Coming soon', iosSoon: 'On the App Store', playSoon: 'On Google Play' },
+    get: { h: 'Get the game', ios: 'Get it on the App Store', play: 'Coming soon to Google Play', playLive: 'Get it on Google Play', hSoon: 'Coming soon', iosSoon: 'On the App Store', playSoon: 'On Google Play' },
     ticketSmall: 'Your number', ticketNow: 'Now serving', stamp: 'APPROVED?',
     board: [
       'Fathy the barber slows everyone near him', 'Abdelrahman floods you with stickers and advice', 'Haj Thal3awa chases whoever is closest',
@@ -306,7 +318,7 @@ const L = {
   },
 }
 
-function page(c, launch = LAUNCH) {
+function page(c, launch = LAUNCH, play = PLAY) {
   const w = c.how.w
   const imgSize = { 'step-room': [960, 540], 'step-chars': [960, 540], 'step-hazards': [960, 540], 'step-clerk': [960, 552], 'step-rest': [960, 679], 'step-result': [960, 717] }
   const widgets = [
@@ -357,7 +369,7 @@ function page(c, launch = LAUNCH) {
   </div>
 </div></section>`
   const stores = launch
-    ? `<div class="stores" id="get" role="group" aria-label="${c.get.h}"><b class="get-h">${c.get.h}</b><a class="btn" href="${APP_STORE}" rel="noopener noreferrer">${c.get.ios}</a><span class="store">${c.get.play}</span></div>`
+    ? `<div class="stores" id="get" role="group" aria-label="${c.get.h}"><b class="get-h">${c.get.h}</b><a class="btn" href="${APP_STORE}" rel="noopener noreferrer">${c.get.ios}</a>${play ? `<a class="btn" href="${PLAY_STORE}" rel="noopener noreferrer">${c.get.playLive}</a>` : `<span class="store">${c.get.play}</span>`}</div>`
     : `<div class="stores" id="get" role="group" aria-label="${c.get.hSoon}"><b class="get-h">${c.get.hSoon}</b><span class="store">${c.get.iosSoon}</span><span class="store">${c.get.playSoon}</span></div>`
   const cu = c.custom
   const customTitle = launch ? cu.h2 : `${cu.h2} <span class="soon">${cu.soon}</span>`
@@ -374,7 +386,7 @@ function page(c, launch = LAUNCH) {
 <meta name="theme-color" content="#cfe0ea">
 <meta name="referrer" content="no-referrer">
 <title>${c.title}</title>
-<meta name="description" content="${launch ? c.descLaunch : c.desc}">
+<meta name="description" content="${launch ? (play ? c.descPlay : c.descLaunch) : c.desc}">
 <meta property="og:title" content="${c.ogTitle}">
 <meta property="og:description" content="${c.ogDesc}">
 <link rel="canonical" href="${c.canonical}">
@@ -538,11 +550,11 @@ ${support}
 `
 }
 
-/** both pages as { file: html } for one state (`launch` true = after the App Store release) */
-export function build(launch = LAUNCH) { return Object.fromEntries(Object.values(L).map((c) => [c.file, page(c, launch)])) }
+/** both pages as { file: html } for one state (`launch` true = after the App Store release · `play` true = Google Play is Live too; it means nothing before launch) */
+export function build(launch = LAUNCH, play = PLAY) { return Object.fromEntries(Object.values(L).map((c) => [c.file, page(c, launch, launch && play)])) }
 
 if (RUN) {
   const launch = process.argv.includes('--launch') ? true : process.argv.includes('--before') ? false : LAUNCH
   for (const [f, html] of Object.entries(build(launch))) writeFileSync(join(root, f), html)
-  console.log(`wrote index.html and en.html (${launch ? 'AFTER launch' : 'BEFORE launch'})`)
+  console.log(`wrote index.html and en.html (${launch ? `AFTER launch · Google Play ${PLAY ? 'LIVE (button)' : 'soon (plain text)'}` : 'BEFORE launch'} · Arabic room word «${ROOM_AR}»)`)
 }

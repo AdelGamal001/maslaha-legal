@@ -12,7 +12,7 @@ import { dirname, extname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { parseLegalMd, UPDATED, GAME_SHA, GAME_SHA_SHORT, GAME_TREE, LEGAL_MD_PATH, COPY_PATH, treeKind, hasCommit, gameFile, rulesFile, crossCheckCopy, generate } from './gen-legal.mjs'
 import { SITE_SECTIONS, PRIVACY_EN, TERMS_EN } from './legal-en.mjs'
-import { LAUNCH, build as buildHome } from './gen-pages.mjs'
+import { LAUNCH, PLAY, PLAY_STORE, ROOM_AR, build as buildHome } from './gen-pages.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const GAME = GAME_TREE
@@ -55,10 +55,11 @@ for (const p of PAGES) {
 ok(/<html lang="ar" dir="rtl">/.test(html['index.html']), 'index.html is lang="ar" rtl')
 { // STORE-TEXT 24/10 (LOCAL item 10 + مشكك A بند 2): the home page has TWO states, BEFORE launch (published with the legal pages: no App Store link, because it is dead while the review runs) and AFTER launch
   // (the App Store text button, Google Play as plain text). gen-pages.mjs has the LAUNCH constant for the committed state and build(launch) for both; the committed index.html / en.html must be exactly build(LAUNCH).
-  const APPLE = 'https://apps.apple.com/app/id6815344684'
-  const B = buildHome(false); const A = buildHome(true)
+  const APPLE = 'https://apps.apple.com/eg/app/id6815344684' // SITE-STORE-BUTTONS (12/11): with a storefront; the address without one answered 404 in a browser
+  const B = buildHome(false, false); const A = buildHome(true, false) // the two states of 24/10; the Google Play switch has its own block below
   ok(JSON.stringify(Object.keys(B)) === JSON.stringify(PAGES) && JSON.stringify(Object.keys(A)) === JSON.stringify(PAGES), 'gen-pages.mjs builds exactly index.html and en.html in both states')
-  for (const p of PAGES) ok(html[p] === buildHome(LAUNCH)[p], `${p} is exactly what gen-pages.mjs produces for LAUNCH = ${LAUNCH} (${LAUNCH ? 'AFTER' : 'BEFORE'} launch): nothing edited by hand, nothing stale`)
+  for (const p of PAGES) ok(!/apps\.apple\.com\/app\//.test(A[p]) && !/apps\.apple\.com\/app\//.test(buildHome(true, true)[p]), `${p}: no App Store link without a storefront in any launch state (it answers 404 in a browser outside the stores that list the game)`)
+  for (const p of PAGES) ok(html[p] === buildHome(LAUNCH, PLAY)[p], `${p} is exactly what gen-pages.mjs produces for LAUNCH = ${LAUNCH} (${LAUNCH ? 'AFTER' : 'BEFORE'} launch) and PLAY = ${PLAY}: nothing edited by hand, nothing stale`)
   for (const [p, soonH, soonIos, soonPlay, h, ios, play, metaBefore, metaAfter, customBefore, customAfter] of [
     ['index.html', 'اللعبة جاية قريب', 'على App Store', 'على Google Play', 'نزّل اللعبة', 'نزّلها من App Store', 'على Google Play قريب', 'قريب على iOS وأندرويد.', 'على iPhone دلوقتي، وأندرويد قريب.', 'ابعتلنا صورتك على إنستجرام', 'اطلب «اعمل شخصيتك» من متجر اللعبة، وابعتلنا 4 صور على إنستجرام أو الإيميل'],
     ['en.html', 'Coming soon', 'On the App Store', 'On Google Play', 'Get the game', 'Get it on the App Store', 'Coming soon to Google Play', 'Coming to iOS and Android.', 'Now on iPhone, coming soon to Android.', 'Send us your photo on Instagram', 'Buy “Make your character” in the game’s shop, send us 4 photos on Instagram or by email'],
@@ -74,6 +75,28 @@ ok(/<html lang="ar" dir="rtl">/.test(html['index.html']), 'index.html is lang="a
     for (const [label, page] of [['BEFORE', before], ['AFTER', after]]) ok(!/يوم النزول|launch day|نرسمك|ونرسمك|Drawn by|we[’']ll draw|we draw|بتتجمع/.test(page) && /data-to="56"/.test(page) && !/data-to="58"/.test(page), `${p} ${label}: no launch-day promise, no «draw» for the AI character, no passive «بتتجمع», and the mini-game number is 56 (the 56 that are switched on)`)
   }
   ok(/min-height:54px/.test(read('home.css')) && /\.stores \.get-h\{/.test(read('home.css')), 'home.css: the shared .btn is 54 px tall (a tap target over 44 px) and the download heading has its rule')
+  { // SITE-STORE-BUTTONS (12/11): the Google Play switch. PLAY false = plain text (pinned above); PLAY true = a second text button to the listing, the meta names both phones, and «قريب» / «coming soon» is gone for Android.
+    const P = buildHome(true, true)
+    ok(PLAY_STORE === 'https://play.google.com/store/apps/details?id=com.adelgamal.qaadetmaslaha', 'the Google Play link is the listing of com.adelgamal.qaadetmaslaha (PLAY_STORE_URL in the game repo)')
+    ok(JSON.stringify(buildHome(false, true)) === JSON.stringify(B), 'BEFORE launch the Google Play switch changes nothing (no link of any store)')
+    for (const [p, ios, playLive, playSoon, metaPlay, metaAfter] of [
+      ['index.html', 'نزّلها من App Store', 'نزّلها من Google Play', 'على Google Play قريب', 'على iPhone وأندرويد.', 'على iPhone دلوقتي، وأندرويد قريب.'],
+      ['en.html', 'Get it on the App Store', 'Get it on Google Play', 'Coming soon to Google Play', 'On iPhone and Android.', 'Now on iPhone, coming soon to Android.'],
+    ]) {
+      const blockOf = (t) => (/<div class="stores"[^>]*>([\s\S]*?)<\/div>/.exec(t) || ['', ''])[1]
+      const pb = blockOf(P[p])
+      ok(pb.includes(`<a class="btn" href="${APPLE}" rel="noopener noreferrer">${ios}</a><a class="btn" href="${PLAY_STORE}" rel="noopener noreferrer">${playLive}</a>`) && (pb.match(/<a /g) || []).length === 2 && !pb.includes('class="store"') && !/data-cta|<img|<svg/.test(pb) && (P[p].match(/play\.google\.com/g) || []).length === 1 && !P[p].includes(playSoon), `${p} with Google Play LIVE: two text buttons, App Store then Google Play («${playLive}»), no plain-text chip, no image, and «${playSoon}» is gone`)
+      ok(P[p].includes(metaPlay) && !P[p].includes(metaAfter), `${p} with Google Play LIVE: the meta says «${metaPlay}»`)
+      ok(!A[p].includes('play.google.com') && A[p].includes(playSoon), `${p} with Google Play NOT live: no link to Google Play anywhere on the page`)
+      ok(P[p].replace(pb, '').replace(metaPlay, '') === A[p].replace(blockOf(A[p]), '').replace(metaAfter, ''), `${p}: the Google Play switch changes the download block and the meta description, and nothing else`)
+    }
+  }
+  { // SITE-STORE-BUTTONS (12/11): one word for a room on the Arabic page, the game's own. Exactly the three strings, and never the two words mixed.
+    const other = ROOM_AR === 'أوضة' ? 'غرفة' : 'أوضة'
+    const ar = html['index.html']
+    ok(ROOM_AR === 'أوضة' || ROOM_AR === 'غرفة', `the Arabic room word is «أوضة» or «غرفة» (it is «${ROOM_AR}»)`)
+    ok((ar.match(new RegExp(ROOM_AR, 'g')) || []).length === 3 && ar.includes(`ال${ROOM_AR} ببلاش لحد 3`) && ar.includes(`اعمل ${ROOM_AR} وابعت الكود`) && ar.includes(`كود ال${ROOM_AR}`) && !ar.includes(other), `index.html says «${ROOM_AR}» in its three places (the free seats line, the first step, the code label) and never «${other}»`)
+  }
 }
 ok(/<html lang="en" dir="ltr">/.test(html['en.html']), 'en.html is lang="en" ltr')
 ok(statSync(join(root, 'home.js')).size <= 6144, `home.js is ${statSync(join(root, 'home.js')).size} bytes (budget 6144)`)
@@ -693,7 +716,7 @@ for (const p of PAGES) {
   const ids = new Set([...html[p].matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]))
   let bad = 0
   for (const h of hrefs) {
-    if (/^(https?:|data:)/.test(h)) { if (!/^https:\/\/(www\.instagram\.com\/(maslaha_game|_othman_007_|adelgamal001)|maslahagame\.com\/|apps\.apple\.com\/app\/id6815344684$)/.test(h)) { bad++; console.log('    unexpected external link ' + h) } continue }
+    if (/^(https?:|data:)/.test(h)) { if (!/^https:\/\/(www\.instagram\.com\/(maslaha_game|_othman_007_|adelgamal001)|maslahagame\.com\/|apps\.apple\.com\/eg\/app\/id6815344684$)/.test(h) && !(PLAY && h === PLAY_STORE)) { bad++; console.log('    unexpected external link ' + h) } continue }
     if (h.startsWith('#')) { if (!ids.has(h.slice(1))) { bad++; console.log('    missing anchor ' + h) } continue }
     const res = await fetch(base + '/' + h).catch(() => null)
     if (!res || res.status >= 400) { bad++; console.log('    404 ' + h) }

@@ -84,6 +84,18 @@ Do not replace the current copy with outdated source paragraphs.
 
 ## Changes
 
+### 12/11/2026 — SITE-STORE-BUTTONS: the home page links to the App Store (branch site-store-buttons)
+
+The iOS game went public on 8/11 and the home page still said «اللعبة جاية قريب» with both store names as plain text.
+
+| What | Detail |
+|---|---|
+| Launch state | `LAUNCH = true` in `scripts/gen-pages.mjs`. The pages are the AFTER state that `check-site5` has pinned since 24/10: heading «نزّل اللعبة» / “Get the game”, one text button to the App Store, the «اعمل شخصيتك» block sends the visitor to that button. |
+| App Store link | `https://apps.apple.com/eg/app/id6815344684`, with the Egyptian storefront. The address without a country answered 404 in a browser on 12/11; this one loads everywhere, and on an iPhone the App Store opens the game where the visitor's own store has it. A new pin refuses a link without a storefront. |
+| Google Play | New switch `PLAY` (now `false`): «على Google Play قريب» stays plain text, with no link. On the day Play Console shows the production release as Live, set `PLAY = true`, run `node scripts/gen-pages.mjs`, then `check-site5`. It adds a second text button to `PLAY_STORE` and the meta says «على iPhone وأندرويد.» |
+| Room word | New constant `ROOM_AR` (now «أوضة», the word of the legal pages). It feeds the three Arabic strings and changes only together with a legal re-pin. |
+| Proof | `check-site5 --static`: 14 new pins (the Play switch in both states and both languages, the link and its storefront, the room word). Each later flip without `gen-pages.mjs` turns the check red; so does a Play link written by hand. |
+
 ### 18/10/2026 — Re-pin to merge/0.2.8 after REFERRAL-2 (branch site-2)
 
 | What | Detail |
