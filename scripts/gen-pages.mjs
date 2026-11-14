@@ -25,7 +25,7 @@ const IG = 'https://www.instagram.com/maslaha_game'
 const APP_STORE = 'https://apps.apple.com/eg/app/id6815344684'
 // SITE-STORE-BUTTONS (12/11): Google Play. false = «على Google Play قريب» as plain text, because a link to a listing that is not Live answers 404. true = a second text button to the listing, and the meta names both phones.
 // Flip it only on the day Play Console shows the production release as Live, then run this script and check-site5. The id is PLAY_STORE_URL in the game repo (src/app/links.js).
-export const PLAY = false
+export const PLAY = true
 export const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.adelgamal.qaadetmaslaha'
 // SITE-STORE-BUTTONS (12/11): the game's word for a room on the Arabic page (three strings below). The legal text of the public game (0.2.11) says «أوضة».
 // The word changes only together with a legal re-pin, so the site and the game text change their word on the same day.
