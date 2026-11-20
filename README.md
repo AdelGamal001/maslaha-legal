@@ -84,6 +84,22 @@ Do not replace the current copy with outdated source paragraphs.
 
 ## Changes
 
+### 20/11/2026 — Re-pin to the 1.0.0 text (branch site-out/1.0.0-repin, order SITE-REPIN-1.0.0 r2)
+
+| What | Detail |
+|---|---|
+| Pinned | `GAME_SHA = 66f5809e561c55fc97f611b3676dc93d364fbaff` (`66f5809e5`), done with `node scripts/gen-legal.mjs --pin 66f5809e561c55fc97f611b3676dc93d364fbaff`. |
+| Two dates | `TEXT_DATE` = 13 November 2026 (`docs/release/legal-site.md` at the pin: «آخر تحديث: 13 نوفمبر 2026»). `UPDATED` = 20 November 2026 (`node scripts/gen-legal.mjs --updated 2026-11-20`); on another publish day it is set again the same way. |
+| T1 | `PRIVACY_EN` «Online rooms», the whole paragraph: the game server runs the match; if it is not available, one player’s phone runs it in its place (the pinned Arabic). |
+| T2 | `PRIVACY_EN` «Gameplay statistics», the first three sentences: the statistics sheet; on iPhone outside Europe no checkbox («شارك وكمّل» / «كمّل من غير مشاركة»); inside, an empty checkbox. |
+| T3 | `PRIVACY_EN` «Service providers»: one sentence after the Apple / Google sign-in sentence names Game Center and Play Games. |
+| T4 | `SITE_SECTIONS`: new section `match` «مين بيشغّل الماتش» / “Who runs the match” right after `providers`: eligible and chosen rooms run on the server, every other room on its owner’s phone; the 20-second «on screen» signal and its 6-hour summary. |
+| T5 | `SITE_SECTIONS` `providers`: a new entry «Apple Game Center وGoogle Play Games» / “Apple Game Center and Google Play Games” before the Nover entry, with the diagnostics that Google’s own Play Games library sends. |
+| T6 | `account-deletion.html` / `account-deletion-en.html` `#kept`: two new paragraphs at the end: points and achievements sent to Game Center or Play Games stay with Apple or Google, and «امسح حسابي» does not reach them. |
+| T7 | The room word in the site’s own Arabic text («الأوضة» → «الغرفة», «أوضة» → «غرفة», «الأوض» → «الغرف»): `legal-en.mjs` (`providers`, the `rooms` heading and text), three sentences of `account-deletion.html`, `ROOM_AR = 'غرفة'` in `gen-pages.mjs` (`index.html`). |
+| Sources | D2 who runs the match: game `server/src/serverRun.ts:3-8`. D3 the `vis` signal: `src/game/online/onlineRoom.js:1321-1345` (`VIS_EVERY_MS`), `server/src/registry.ts:45-48` (`SEAT_FACTS_TTL_MS`), `server/src/MaslahtakRoom.ts:2478`, `src/game/analyticsSchema.js:119` (`leave_penalty`). D4 Game Center / Play Games: `docs/release/legal-site.md:134`, `src/game/social/storeBoard.js:13, 119-125`, `src/game/shared/remoteConfig.js:68, 70`, `scripts/game-services.mjs:166-205`, `src/game/copy.js:1013` (`shareStats`), developer.android.com/games/pgs/data-collection, PGS terms §3. All at the pin. |
+| Check | `check-site5.mjs`: three pins re-pointed to the same facts (`SITE_AR_LIST` «الإدارة بتشوف الغرف»; the two Arabic patterns of «الأطفال», the room word; `#kept`, the operating-logs paragraph now sits right before T6) and eight new pins `SITE-REPIN 1`–`8`. |
+
 ### 12/11/2026 — Re-pin to the public 0.2.11 text (branch site-store-buttons)
 
 | What | Detail |

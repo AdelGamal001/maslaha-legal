@@ -29,7 +29,7 @@ export const PLAY = true
 export const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.adelgamal.qaadetmaslaha'
 // SITE-STORE-BUTTONS (12/11): the game's word for a room on the Arabic page (three strings below). The legal text of the public game (0.2.11) says «أوضة».
 // The word changes only together with a legal re-pin, so the site and the game text change their word on the same day.
-export const ROOM_AR = 'أوضة'
+export const ROOM_AR = 'غرفة'
 const IG_OTHMAN = 'https://www.instagram.com/_othman_007_'
 const IG_ADEL = 'https://www.instagram.com/adelgamal001'
 // the game server's public counts (server/src/stats.ts: { rooms, players, at }); the page asks it once a minute

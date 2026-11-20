@@ -18,7 +18,7 @@ const RUN = !!process.argv[1] && SELF === resolve(process.argv[1])
 
 // The maslahtak commit the published text is taken from. To re-pin: change this line, run `node scripts/gen-legal.mjs`, commit the four pages
 // (or run `node scripts/gen-legal.mjs --pin <sha>`, which does the first two steps).
-export const GAME_SHA = '70827d9f82c06a4acded853ebacfd3b65fd47e79'
+export const GAME_SHA = '66f5809e561c55fc97f611b3676dc93d364fbaff'
 export const GAME_SHA_SHORT = GAME_SHA.slice(0, 9)
 export const GAME_TREE = process.env.SITE5_GAME_TREE || 'G:/Work Space/maslahtak2/worktrees/maslahtak-merge-meta'
 export const LEGAL_MD_PATH = 'docs/release/legal-site.md'
@@ -27,10 +27,10 @@ export const RULES_PATH = 'src/game/shared/accountRules.js'
 
 // SITE-STORE-BUTTONS (12/11): two dates, because the website can change on a day the game's text did not (a site-only section, a re-pin).
 // TEXT_DATE = the date INSIDE the game text at GAME_SHA (`updatedAt` in copy.js = both date lines of legal-site.md). check-site5 pins it to the game. The four generated pages say it in their footer.
-export const TEXT_DATE = { iso: '2026-11-01', ar: '1 نوفمبر 2026', en: '1 November 2026' }
+export const TEXT_DATE = { iso: '2026-11-13', ar: '13 نوفمبر 2026', en: '13 November 2026' }
 // UPDATED = the date at the top of all eight pages («آخر تحديث» / «Updated:»): the day the website itself was last published. Never before TEXT_DATE. The hand-written support and
 // deletion pages carry the same date. `node scripts/gen-legal.mjs --updated YYYY-MM-DD` writes it here and in those four pages, then regenerates.
-export const UPDATED = { iso: '2026-11-14', ar: '14 نوفمبر 2026', en: '14 November 2026' }
+export const UPDATED = { iso: '2026-11-20', ar: '20 نوفمبر 2026', en: '20 November 2026' }
 const IG = 'https://www.instagram.com/maslaha_game'
 const PROVIDERS = {
   'cloud-prod.colyseus.io/privacy-policy': 'https://cloud-prod.colyseus.io/privacy-policy',
