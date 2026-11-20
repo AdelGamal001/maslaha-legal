@@ -469,6 +469,10 @@ ok(/30 يوم/.test(legalHtml['account-deletion.html']) && /90 يوم/.test(lega
   ok(pAr.includes('مكتبة Google نفسها بتبعت لـGoogle بيانات تشخيص وتحليل عن شغل المكتبة') && pEn.includes('Google’s own library sends Google diagnostic and analytics data about how the library works'), 'SITE-REPIN 8 · privacy pages (both languages) say that on Android Google’s own Play Games library sends Google diagnostic and analytics data (T5)')
   if (pin) ok(pin.copy.includes("shareStats: 'شارك إحصائيات اللعب'"), `SITE-REPIN 8 · the game at ${GAME_SHA_SHORT} still labels the statistics switch «شارك إحصائيات اللعب» (src/game/copy.js shareStats), the label #providers quotes`)
   else skip(1, 'SITE-REPIN 8 game half (shareStats)')
+  // SITE-REPIN A1 (GC-ROAD-A r2 §14, 20/11): T8 (the section «older») and T9 (the Game Center / Play Games sending is separate from the statistics choice)
+  const [oAr, oEn] = [secP('privacy.html', 'older'), secP('privacy-en.html', 'older')]
+  ok(/<section id="older">/.test(legalHtml['privacy.html']) && /<section id="older">/.test(legalHtml['privacy-en.html']) && oAr.includes('لو لعبتك لسه نسخة 0.2.11، فيه تلات فروق.') && oEn.includes('If your game is still version 0.2.11, three things differ.'), 'SITE-REPIN 9 · privacy pages (both languages) have <section id="older"> with «لو لعبتك لسه نسخة 0.2.11، فيه تلات فروق.» / «If your game is still version 0.2.11, three things differ.»')
+  ok(pAr.includes('الإرسال ده مالوش علاقة بـ«شارك إحصائيات اللعب»') && pEn.includes('This sending is separate from “Share gameplay statistics”'), 'SITE-REPIN 10 · privacy.html has «الإرسال ده مالوش علاقة بـ«شارك إحصائيات اللعب»» and privacy-en.html has «This sending is separate from “Share gameplay statistics”»')
 }
 { // every internal href on the legal pages resolves, anchors included
   let bad = 0
