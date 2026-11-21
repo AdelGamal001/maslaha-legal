@@ -30,7 +30,7 @@ export const RULES_PATH = 'src/game/shared/accountRules.js'
 export const TEXT_DATE = { iso: '2026-11-13', ar: '13 نوفمبر 2026', en: '13 November 2026' }
 // UPDATED = the date at the top of all eight pages («آخر تحديث» / «Updated:»): the day the website itself was last published. Never before TEXT_DATE. The hand-written support and
 // deletion pages carry the same date. `node scripts/gen-legal.mjs --updated YYYY-MM-DD` writes it here and in those four pages, then regenerates.
-export const UPDATED = { iso: '2026-11-20', ar: '20 نوفمبر 2026', en: '20 November 2026' }
+export const UPDATED = { iso: '2026-11-21', ar: '21 نوفمبر 2026', en: '21 November 2026' }
 const IG = 'https://www.instagram.com/maslaha_game'
 const PROVIDERS = {
   'cloud-prod.colyseus.io/privacy-policy': 'https://cloud-prod.colyseus.io/privacy-policy',
